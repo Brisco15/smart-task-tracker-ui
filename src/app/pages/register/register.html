@@ -1,1 +1,36 @@
-<p>register works!</p>
+<div id="wrapper">
+    <div id="title">
+        <h1>Register in The Workplace</h1>
+    </div>
+    <form class="register-form" [formGroup]="registerForm" (ngSubmit)="onRegister()">
+        <h2>Register</h2>
+
+        <input type="text" class="form-control" formControlName="userName" placeholder="Username" required/>
+        <input type="email" class="form-control" formControlName="email" placeholder="Email" required/>
+
+        <div class="form-group">
+          <input type="password" class="form-control" formControlName="passwordHash" placeholder="Password" required/>
+          @if(registerForm.get('passwordHash')?.invalid && (registerForm.get('passwordhash')?.dirty || registerForm.get('passwordHash')?.touched)){
+            <span class="help-block">
+                Password must be a combination of minimum 1 lower-case, 1 upper-case, 1 digit, 1 special character
+                (!#$%&?) and at least 8 characters long
+            </span>
+          }
+        </div>
+        
+        <div class="form-group">
+            <label for="roleID">Role</label>
+            <select formControlName="roleID" id="roleID" class="form-control" required>
+                <option [value]="null" disabled selected>Select Role</option>
+                <option *ngFor="let role of roles" [value]="role.roleID">
+               {{ role.roleName }}
+                </option>
+            </select>
+        </div>
+
+        <button class="submitButton" type="submit" [disabled]="registerForm.invalid">Register</button>
+        <a routerLink="/login" routerLinkActive="router-link-active"> Click here to login</a>
+
+
+    </form>
+</div>
