@@ -21,4 +21,14 @@ export class Auth {
         roleID
       })
     }
+
+    login(
+      email: string,
+      passwordHash: string
+    ){
+      return this.http.post(`${this.apiUrl}/login`, {
+        email,
+        passwordHash
+      })
+    }
 }
