@@ -28,7 +28,7 @@ export class Auth {
     ){
       return this.http.post(`${this.apiUrl}/login`, {
         email,
-        passwordHash
+        password: passwordHash
       })
     }
 }

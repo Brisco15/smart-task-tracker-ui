@@ -1,1 +1,57 @@
-<p>login works!</p>
+<div id="wrapper">
+    <div id="title">
+        <h1>Welcome back</h1>
+    </div>
+    <form (ngSubmit)="onLogin()" class="login-form">
+        <h2>Login</h2>
+
+        <div class="form-group">
+            <input 
+              type="email"
+              class="form-control"
+              placeholder="Email"
+              [class.ng-invalid]="showEmailError()"
+              [class.ng-valid]="emailTouched() && emailValid()"
+              [value]="email()"
+              (input)="onEmailInput($event)"
+              required
+            />
+            @if (showEmailError()){
+                <span class="help-block">
+                    Please enter a valid email address
+                </span>
+            }
+        </div>
+
+        <div class="form-group">
+            <input 
+              type="password"
+              [value]="passwordHash()"
+              class="form-control"
+              placeholder="Password"
+              [class.ng-invalid]="showPasswordError()"
+              [class.ng-valid]="passwordTouched() && passwordValid()"
+              (input)="onPasswordInput($event)"
+
+              required
+            />
+            @if (showPasswordError()){
+                <span class="help-block">
+                    Password must be at least 6 characters long
+                </span>
+            }
+        </div>
+
+        <button 
+          class="submitButton"
+          type="submit"
+          [disabled]="!formValid() || isSubmitting()"
+          [class.loading]="isSubmitting()"
+          >
+          {{isSubmitting() ? 'Logging in ...' : 'Login'}}
+
+        </button>
+
+        <a routerLink="/register" routerLinkActive="router-link-active">Don't have an account? Register here</a>
+    </form>
+</div>
