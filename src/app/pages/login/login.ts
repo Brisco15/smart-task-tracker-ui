@@ -73,8 +73,11 @@ export class Login {
     this.isSubmitting.set(true);
 
     this.authService.login(this.email(), this.passwordHash()).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         console.log('Login successful:', response);
+        if (response.token) {
+          localStorage.setItem('token', response.token);
+        }
         alert('Login successful!');
         this.router.navigateByUrl('/dashboard');
       },

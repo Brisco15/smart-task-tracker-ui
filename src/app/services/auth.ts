@@ -31,4 +31,8 @@ export class Auth {
         password: passwordHash
       })
     }
+
+    logout(){
+      localStorage.removeItem('token')
+    }
 }
