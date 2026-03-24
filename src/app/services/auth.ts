@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-
+import { JwtPayload } from '../interfaces/jwt-payload';
+import { jwtDecode} from 'jwt-decode'
+ 
 @Injectable({
   providedIn: 'root',
 })
@@ -32,7 +34,35 @@ export class Auth {
       })
     }
 
-    logout(){
+    getToken(): string | null{
+      return localStorage.getItem('token');
+    }
+
+    isAuthenticated(): boolean {
+      const token = this.getToken();
+      if(!token) return false;
+
+      try{
+        const decoded = jwtDecode<JwtPayload>(token);
+        return decoded.exp * 1000 > Date.now();
+      }catch {
+        return false
+      }
+    }
+
+    getUserRole(): string | null {
+      const token = this.getToken()
+      if(!token) return null;
+
+      try {
+        const decoded = jwtDecode<JwtPayload>(token);
+        return decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role'];
+      }catch {
+        return null;
+      }
+    }
+
+    logout(): void{
       localStorage.removeItem('token')
     }
 }
