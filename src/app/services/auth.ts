@@ -52,12 +52,26 @@ export class Auth {
 
     getUserRole(): string | null {
       const token = this.getToken()
-      if(!token) return null;
+      if(!token) {
+        console.log('No token found');
+        return null;
+      }
 
       try {
-        const decoded = jwtDecode<JwtPayload>(token);
-        return decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role'];
-      }catch {
+        const decoded = jwtDecode<any>(token);
+        console.log('=== JWT DEBUG ===');
+        console.log('Full decoded token:', decoded);
+        console.log('All claim keys:', Object.keys(decoded));
+        
+        // Try both possible claim names
+        const role = decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] 
+                  || decoded['role'];
+        
+        console.log('Extracted Role:', role);
+        console.log('================');
+        return role || null;
+      }catch(error) {
+        console.error('Error decoding token:', error);
         return null;
       }
     }

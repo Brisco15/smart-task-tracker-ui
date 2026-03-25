@@ -75,6 +75,8 @@ export class Login {
     this.authService.login(this.email(), this.passwordHash()).subscribe({
       next: (response: any) => {
         console.log('Login successful:', response);
+        console.log(this.email(), this.passwordHash());
+        
         if (response.token) {
           localStorage.setItem('token', response.token);
         }

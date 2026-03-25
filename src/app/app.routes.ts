@@ -27,23 +27,26 @@ export const routes: Routes = [
         path: 'dashboard',
         component: Dashboard,
         title: 'Dashboard',
-        canActivate: [authGuard],
+        canActivate: [authGuard]
     },
     {
         path: 'admin',
         component: Admin,
         title: 'Admin',
-        canActivate: [roleGuardGuard],
-        data: { roles: ['admin']}
-
+        canActivate: [authGuard, roleGuardGuard],
+        data: { roles: ['1']}
     },
     {
         path: 'users',
         component: Users,
         title: 'Users',
-        canActivate: [roleGuardGuard],
-        data: { roles: ['admin', 'developer']}
-
+        canActivate: [authGuard, roleGuardGuard],
+        data: { roles: ['1', '2']}
+    },
+    {
+        path: '**',
+        redirectTo: 'login'
     }
+    
 
 ];
