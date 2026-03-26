@@ -27,21 +27,23 @@ export const routes: Routes = [
         path: 'dashboard',
         component: Dashboard,
         title: 'Dashboard',
-        canActivate: [authGuard]
+        canActivate: [authGuard, roleGuardGuard],
+        data: {roles: ['Admin', 'Developer']}
+        
     },
     {
         path: 'admin',
         component: Admin,
         title: 'Admin',
         canActivate: [authGuard, roleGuardGuard],
-        data: { roles: ['1']}
+        data: { roles: ['admin']}
     },
     {
         path: 'users',
         component: Users,
         title: 'Users',
         canActivate: [authGuard, roleGuardGuard],
-        data: { roles: ['1', '2']}
+        data: { roles: ['admin', 'developer']}
     },
     {
         path: '**',

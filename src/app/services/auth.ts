@@ -59,16 +59,9 @@ export class Auth {
 
       try {
         const decoded = jwtDecode<any>(token);
-        console.log('=== JWT DEBUG ===');
-        console.log('Full decoded token:', decoded);
-        console.log('All claim keys:', Object.keys(decoded));
-        
         // Try both possible claim names
         const role = decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] 
                   || decoded['role'];
-        
-        console.log('Extracted Role:', role);
-        console.log('================');
         return role || null;
       }catch(error) {
         console.error('Error decoding token:', error);

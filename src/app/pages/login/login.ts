@@ -79,9 +79,14 @@ export class Login {
         
         if (response.token) {
           localStorage.setItem('token', response.token);
+
+          setTimeout(()=>{
+            alert('Login successful!');
+            this.router.navigateByUrl('/dashboard');
+          }, 100);
+        }else {
+          alert('No token received from server')
         }
-        alert('Login successful!');
-        this.router.navigateByUrl('/dashboard');
       },
       error: (error) => {
         console.error('Login error:', error);

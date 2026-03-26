@@ -1,1 +1,54 @@
-<p>dashboard works!</p>
+<h2>Dashboard</h2>
+
+<div *ngIf="isLoading">Loading...</div>
+<div *ngIf="error" class="error">{{ error }}</div>
+
+<h3>Users</h3>
+
+<table class="users-table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Role</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let user of users">
+      <td>{{ user.userID }}</td>
+      <td>{{ user.name }}</td>
+      <td>{{ user.email }}</td>
+      <td>{{ user.role }}</td>
+      <td>
+        <button (click)="editUser(user.userID)">Edit</button>
+        <button (click)="deleteUser(user.userID)">Delete</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Projects</h3>
+
+<table class="projects-table" *ngIf="projects.length > 0">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let project of projects">
+      <td>{{ project.id }}</td>
+      <td>{{ project.name }}</td>
+      <td>{{ project.description }}</td>
+      <td>
+        <button (click)="editProject(project.id)">Edit</button>
+        <button (click)="deleteProject(project.id)">Delete</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
