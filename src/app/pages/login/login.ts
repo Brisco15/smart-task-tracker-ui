@@ -74,26 +74,29 @@ export class Login {
 
     this.authService.login(this.email(), this.passwordHash()).subscribe({
       next: (response: any) => {
-        console.log('Login successful:', response);
-        console.log(this.email(), this.passwordHash());
+        console.log('✅ Login successful:', response);
         
         if (response.token) {
+          // Token SOFORT speichern
           localStorage.setItem('token', response.token);
-
-          setTimeout(()=>{
+          
+          // Token validieren
+          const payload = JSON.parse(atob(response.token.split('.')[1]));
+          console.log('🎫 Token Role:', payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']);
+          
+          // Kurze Verzögerung für localStorage-Sync
+          setTimeout(() => {
             alert('Login successful!');
             this.router.navigateByUrl('/dashboard');
           }, 100);
-        }else {
-          alert('No token received from server')
+        } else {
+          alert('No token received from server');
+          this.isSubmitting.set(false);
         }
       },
       error: (error) => {
-        console.error('Login error:', error);
+        console.error('❌ Login error:', error);
         alert('Invalid credentials. Please try again.');
-        this.isSubmitting.set(false);
-      },
-      complete: () => {
         this.isSubmitting.set(false);
       }
     });

@@ -49,6 +49,70 @@ button {
   font-size: 12px;
 }
 
+.error {
+  color: red;
+  padding: 10px;
+  background-color: #ffebee;
+  border: 1px solid #f8bbd9;
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+.debug-info {
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.debug-info summary {
+  cursor: pointer;
+  font-weight: bold;
+  color: #007bff;
+}
+
+.debug-info pre {
+  margin: 10px 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.loading {
+  padding: 20px;
+  text-align: center;
+  background-color: #f0f8ff;
+  border: 1px solid #007bff;
+  border-radius: 4px;
+  margin: 10px 0;
+  font-weight: bold;
+  color: #007bff;
+}
+
+.no-data {
+  padding: 20px;
+  text-align: center;
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+.retry-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.retry-btn:hover {
+  background-color: #0056b3;
+}
+
 button:nth-child(1) {
   background-color: #007bff;
   color: white;

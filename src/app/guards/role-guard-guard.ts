@@ -6,23 +6,39 @@ export const roleGuardGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
   const authService = inject(Auth);
 
-  //check if authenticated
-  if(!authService.isAuthenticated()){
+  // Check if authenticated
+  if (!authService.isAuthenticated()) {
     router.navigateByUrl('/login');
     return false;
   }
 
-  //Get required roles from route data
+  // Get required roles from route data
   const requiredRoles = route.data['roles'] as string[];
   
-  if(!requiredRoles || requiredRoles.length === 0){
+  if (!requiredRoles || requiredRoles.length === 0) {
     return true;
   }
 
-  //Get user's role
+  // Get user's role
   const userRole = authService.getUserRole();
 
-  if(!userRole || !requiredRoles.includes(userRole)){ 
+  if (!userRole) {
+    console.error('No user role found in token');
+    alert('Access Denied: Insufficient permissions');
+    router.navigateByUrl('/login');
+    return false;
+  }
+
+  // ✅ FIX: Case-insensitive Vergleich
+  const normalizedUserRole = userRole.toLowerCase();
+  const normalizedRequiredRoles = requiredRoles.map(r => r.toLowerCase());
+
+  if (!normalizedRequiredRoles.includes(normalizedUserRole)) {
+    console.error('Access Denied:', {
+      userRole: userRole,
+      requiredRoles: requiredRoles,
+      currentRoute: state.url
+    });
     alert('Access Denied: Insufficient permissions');
     router.navigateByUrl('/login');
     return false;
@@ -30,3 +46,4 @@ export const roleGuardGuard: CanActivateFn = (route, state) => {
 
   return true;
 };
+
