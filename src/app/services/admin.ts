@@ -20,32 +20,33 @@ export class Admin {
     return this.http.delete(`${this.apiUrl}/users/${userID}`)
   }
 
-
-  postProject(projectName: string, description: string, startDate: Date) {
-    return this.http.post(`${this.apiUrl}/projects`, {
-      projectName,
-      description,
-      startDate,
-    });
+  updateUser(userID: number, roleName: string){
+    return this.http.put(`${this.apiUrl}/users/${userID}`,{
+      roleName
+    })
 
   }
 
-  updateProject(projectID: number, projectName: string, description: string, startDate: Date) {
-    return this.http.put(`${this.apiUrl}/projects/${projectID}`, {
-      projectName,
-      description,
-      startDate,
-    });
+  archiveUser(userID: number) {
+    return this.http.put(`${this.apiUrl}/users/${userID}/archive`, {});
   }
 
-  getProjects() {
-    return this.http.get(`${this.apiUrl}/projects`)
-  }
+  // updateProject(projectID: number, projectName: string, description: string, startDate: Date) {
+  //   return this.http.put(`${this.apiUrl}/projects/${projectID}`, {
+  //     projectName,
+  //     description,
+  //     startDate,
+  //   });
+  // }
 
-  deleteProject(projectID: number) {
+  // getProjects() {
+  //   return this.http.get(`${this.apiUrl}/projects`)
+  // }
 
-    return this.http.delete(`${this.apiUrl}/projects/${projectID}`)
-  }
+  // deleteProject(projectID: number) {
+
+  //   return this.http.delete(`${this.apiUrl}/projects/${projectID}`)
+  // }
 
 
 }
