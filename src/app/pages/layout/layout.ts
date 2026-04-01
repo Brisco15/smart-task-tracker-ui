@@ -38,9 +38,16 @@ export class Layout {
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
+
+
+        // ✅ Auth Service Methode verwenden
+        const userRole = this.authService.getUserRole();
+        console.log('🎫 User Role from Service:', userRole);
+        // Extract user info from token claims
         this.currentUser = {
           name: payload.unique_name || payload.sub || 'User',
-          role: payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || 'User',
+          role: userRole || 'User',
+          //role: payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || payload.role || 'User',
           email: payload.email || ''
         };
       } catch (e) {
