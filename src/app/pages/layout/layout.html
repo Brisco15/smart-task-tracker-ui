@@ -1,1 +1,82 @@
-<p>layout works!</p>
+<div class="layout-container">
+  <!-- Header Toolbar -->
+  <mat-toolbar color="primary" class="header-toolbar">
+    <button mat-icon-button (click)="toggleSidenav()" matTooltip="Toggle Navigation" class="menu-button">
+      <mat-icon>menu</mat-icon>
+    </button>
+    
+    <span class="app-title">
+      <mat-icon class="app-icon">task_alt</mat-icon>
+      Smart Task Tracker
+    </span>
+    
+    <span class="spacer"></span>
+    
+    <!-- User Info & Actions -->
+    <div class="user-section" *ngIf="currentUser">
+      <span class="user-info">
+        <mat-icon class="user-avatar">account_circle</mat-icon>
+        <span class="user-details">
+          <span class="user-name">{{ currentUser.name }}</span>
+          <span class="user-role">{{ currentUser.role.roleName }}</span>
+        </span>
+      </span>
+        <button  mat-menu-item (click)="onLogout()">
+          <mat-icon >logout</mat-icon>
+          <span>Logout</span>
+        </button>
+      
+    </div>
+  </mat-toolbar>
+
+  <!-- Main Layout with Sidebar -->
+  <mat-sidenav-container class="sidenav-container">
+    <mat-sidenav [opened]="sidenavOpened" mode="side" class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <mat-icon>dashboard</mat-icon>
+          <span>Navigation</span>
+        </div>
+      </div>
+      
+      <mat-nav-list class="nav-list">
+        <a mat-list-item routerLink="/dashboard" routerLinkActive="active active-nav" class="nav-item">
+          <mat-icon matListItemIcon>dashboard</mat-icon>
+          <span matListItemTitle>Dashboard</span>
+          <span matListItemLine>Overview & Analytics</span>
+        </a>
+        
+        <a mat-list-item routerLink="/users" routerLinkActive="active active-nav" class="nav-item">
+          <mat-icon matListItemIcon>group</mat-icon>
+          <span matListItemTitle>Users</span>
+          <span matListItemLine>Manage Users</span>
+        </a>
+        
+        <a mat-list-item routerLink="/admin" routerLinkActive="active active-nav" class="nav-item">
+          <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
+          <span matListItemTitle>Admin</span>
+          <span matListItemLine>Administrative Tools</span>
+        </a>
+        
+        <mat-divider class="nav-divider"></mat-divider>
+        
+        <mat-list-item class="nav-item nav-item-secondary">
+          <mat-icon matListItemIcon>help</mat-icon>
+          <span matListItemTitle>Help & Support</span>
+        </mat-list-item>
+        
+        <mat-list-item class="nav-item nav-item-secondary">
+          <mat-icon matListItemIcon>info</mat-icon>
+          <span matListItemTitle>About</span>
+        </mat-list-item>
+      </mat-nav-list>
+    </mat-sidenav>
+
+    <!-- Main Content Area -->
+    <mat-sidenav-content class="main-content">
+      <div class="content-wrapper">
+        <router-outlet></router-outlet>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

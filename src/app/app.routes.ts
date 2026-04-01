@@ -6,6 +6,7 @@ import { authGuard } from './guards/auth-guard';
 import { roleGuardGuard } from './guards/role-guard-guard';
 import { Users } from './pages/users/users';
 import { Admin } from './pages/admin/admin';
+import { Layout } from './pages/layout/layout';
 
 
 
@@ -24,31 +25,39 @@ export const routes: Routes = [
         component: Register
     },
     {
-        path: 'dashboard',
-        component: Dashboard,
-        title: 'Dashboard',
-        canActivate: [authGuard, roleGuardGuard],
-        data: {roles: ['Admin', 'Developer']}
+        path: '',
+        component: Layout,
+        canActivate: [authGuard,roleGuardGuard],
+        children: 
+        [
+            {
+                path: 'dashboard',
+                component: Dashboard,
+                title: 'Dashboard',
+                data: {roles: ['Admin', 'Developer', 'Manager']}
         
+            },
+            {
+                path: 'admin',
+                component: Admin,
+                title: 'Admin',
+                data: { roles: ['Admin']}
+            },
+            {
+                path: 'users',
+                component: Users,
+                title: 'Users',
+                data: { roles: ['Admin', 'Developer', 'Manager']}
+            },
+            {
+                path: '**',
+                redirectTo: 'login'
+            }
+    
+
+        ]
+
     },
-    {
-        path: 'admin',
-        component: Admin,
-        title: 'Admin',
-        canActivate: [authGuard, roleGuardGuard],
-        data: { roles: ['admin']}
-    },
-    {
-        path: 'users',
-        component: Users,
-        title: 'Users',
-        canActivate: [authGuard, roleGuardGuard],
-        data: { roles: ['admin', 'developer']}
-    },
-    {
-        path: '**',
-        redirectTo: 'login'
-    }
     
 
 ];
