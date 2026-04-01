@@ -66,10 +66,12 @@ export class Dashboard implements OnInit {
   this.adminService.getAllUsers().subscribe({
     next: (data: any) => {
       console.log('✅ Users loaded:', data);
-      this.users = data;
+
+      const activeUsers = data.filter((user: UserDTO) => !user.archived)
+      this.users = activeUsers;
       
       //  DataSource aktualisieren
-      this.dataSource.data = data;
+      this.dataSource.data = activeUsers;
       
       this.isLoadingUsers = false;
       
@@ -129,17 +131,19 @@ export class Dashboard implements OnInit {
     console.log('Archiving user:', userID);
 
     this.adminService.archiveUser(userID).subscribe({
-      next: () => {
+      next: (response: any) => {
+        alert(response.message ||'User archived successfully');
         this.loadUsers(); // Refresh the list
       },
       error: (error) => {
         console.error('Error archiving user', error);
-        alert('Failed to archive user');
+        if (error.status === 403) {
+          alert('You do not have permission to perform this action');
+        } else {
+          alert('Failed to archive user');
+        }
       }
     });
-    
-    // For now, just show a message
-    alert('Archive functionality not implemented yet');
   }
 
 

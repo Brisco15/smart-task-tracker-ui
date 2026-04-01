@@ -28,25 +28,8 @@ export class Admin {
   }
 
   archiveUser(userID: number) {
-    return this.http.put(`${this.apiUrl}/users/${userID}/archive`, {});
+    return this.http.patch(`${this.apiUrl}/users/${userID}/archive`, {});
   }
-
-  // updateProject(projectID: number, projectName: string, description: string, startDate: Date) {
-  //   return this.http.put(`${this.apiUrl}/projects/${projectID}`, {
-  //     projectName,
-  //     description,
-  //     startDate,
-  //   });
-  // }
-
-  // getProjects() {
-  //   return this.http.get(`${this.apiUrl}/projects`)
-  // }
-
-  // deleteProject(projectID: number) {
-
-  //   return this.http.delete(`${this.apiUrl}/projects/${projectID}`)
-  // }
 
 
 }
