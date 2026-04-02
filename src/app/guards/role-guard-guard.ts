@@ -40,7 +40,7 @@ export const roleGuardGuard: CanActivateFn = (route, state) => {
       currentRoute: state.url
     });
     alert('Access Denied: Insufficient permissions');
-    router.navigateByUrl('/login');
+    router.navigateByUrl('/dashboard');
     return false;
   }
 
