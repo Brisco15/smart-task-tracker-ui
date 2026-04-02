@@ -20,12 +20,13 @@ export class Admin {
     return this.http.delete(`${this.apiUrl}/users/${userID}`)
   }
 
-  updateUser(userID: number, roleName: string){
-    return this.http.put(`${this.apiUrl}/users/${userID}`,{
-      roleName
-    })
-
-  }
+  updateUser(userID: number, userData: any) {
+  return this.http.put(`${this.apiUrl}/users/${userID}`, {
+    userName: userData.userName,
+    email: userData.email,
+    roleID: userData.roleID
+  });
+}
 
   archiveUser(userID: number) {
     return this.http.patch(`${this.apiUrl}/users/${userID}/archive`, {});

@@ -1,0 +1,53 @@
+<!-- smart-task-tracker-ui\src\app\pages\edit-user-dialog\edit-user-dialog.html -->
+
+<h2 mat-dialog-title>Edit User</h2>
+
+<mat-dialog-content>
+  <div class="form-container">
+      
+    <!-- Username Field -->
+    <mat-form-field class="full-width">
+      <mat-label>Username</mat-label>
+      <input 
+        matInput 
+        [(ngModel)]="userName" 
+        placeholder="Enter username"
+        readonly
+        required>
+    </mat-form-field>
+
+    <!-- Email Field -->
+    <mat-form-field class="full-width">
+      <mat-label>Email</mat-label>
+      <input 
+        matInput 
+        type="email" 
+        [(ngModel)]="email" 
+        placeholder="Enter email"
+        readonly
+        required>
+    </mat-form-field>
+
+    <!-- Role Dropdown -->
+    <mat-form-field class="full-width">
+      <mat-label>Role</mat-label>
+      <mat-select [(ngModel)]="roleID" required>
+        <mat-option *ngFor="let role of availableRoles" [value]="role.roleID">
+          {{ role.roleName }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+  <button mat-button color="warn" (click)="onCancel()">Cancel</button>
+  <button 
+    mat-raised-button 
+    color="primary" 
+    (click)="onSave()"
+    [disabled]="!isFormValid()">
+    Save Changes
+  </button>
+</mat-dialog-actions>

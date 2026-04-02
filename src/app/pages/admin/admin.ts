@@ -1,17 +1,19 @@
-import { Component, OnInit, ChangeDetectorRef} from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject} from '@angular/core';
 import { Admin as AdminService } from '../../services/admin';
 import { Router } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { UserDTO } from '../../interfaces/UserDTO';
-
-import {MatTableDataSource, MatTableModule} from '@angular/material/table';
-import {MatButtonModule} from '@angular/material/button';
-import {MatCheckboxModule} from '@angular/material/checkbox';
-import {ScrollingModule} from '@angular/cdk/scrolling';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { ScrollingModule } from '@angular/cdk/scrolling';
+import { EditUserDialog } from '../edit-user-dialog/edit-user-dialog';
+import { HttpClient } from '@angular/common/http';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-admin',
-  imports: [CommonModule, DatePipe, MatTableModule, MatButtonModule, MatCheckboxModule, ScrollingModule],
+  imports: [CommonModule, DatePipe, MatTableModule, MatButtonModule, MatCheckboxModule, ScrollingModule, MatDialogModule,],
   templateUrl: './admin.html',
   styleUrl: './admin.css',
 })
@@ -21,8 +23,10 @@ export class AdminComponent implements OnInit{
   error: string | null = null;
   displayedColumns: string[] = ['userID', 'userName', 'email', 'role', 'createdAt','actions'];
   dataSource = new MatTableDataSource<UserDTO>([]);
+  http = inject(HttpClient);
   
   isLoadingUsers = false;
+  
    get anyLoading(): boolean {
    return this.isLoadingUsers 
  }
@@ -31,7 +35,7 @@ export class AdminComponent implements OnInit{
   }
 
   constructor(private adminService: AdminService, private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef, private dialog: MatDialog
   ) { }
 
   ngOnInit(): void {
@@ -115,12 +119,6 @@ export class AdminComponent implements OnInit{
     })
   }
 
-  editUser(userID: number) {
-    // Navigate to user edit page or open edit modal
-    console.log('Edit user:', userID);
-    // TODO: Implement user editing functionality
-    alert('Edit user functionality not yet implemented');
-  }
 
   archiveUser(userID: number){
     if(!confirm('Are you sure you want to archive this user?')) return;
@@ -142,5 +140,43 @@ export class AdminComponent implements OnInit{
       }
     });
   }
+
+
+   editUser(userID: number) {
+    // Find the user to edit
+    const userToEdit = this.users.find(u => u.userID === userID);
+    if(!userToEdit){
+      alert('User not found');
+      return;
+    }
+
+    // Open dialog with user data
+    const dialogRef = this.dialog.open(EditUserDialog, {
+      height: '500px',
+      width: '600px',
+      data: {user: userToEdit}
+    });
+
+    // Handle dialog close
+    dialogRef.afterClosed().subscribe(result =>{
+      if(result){
+        console.log('Dialog result:', result);
+
+        //Update user via API
+        this.adminService.updateUser(userID, result).subscribe({
+          next: () => {
+            alert('User updated successfully');
+            this.loadUsers();
+          },
+          error: (error) =>{
+            console.error('Error updating user:', error);
+            alert('Failed to update user infos')
+          }
+        })
+        
+      }
+    })  
+  }
+  
 
 }
