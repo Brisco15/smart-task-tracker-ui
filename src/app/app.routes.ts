@@ -7,6 +7,7 @@ import { roleGuardGuard } from './guards/role-guard-guard';
 import { Users } from './pages/users/users';
 import { AdminComponent } from './pages/admin/admin';
 import { Layout } from './pages/layout/layout';
+import { Projects } from './pages/projects/projects';
 
 
 
@@ -45,9 +46,9 @@ export const routes: Routes = [
                 data: { roles: ['Admin']}
             },
             {
-                path: 'users',
-                component: Users,
-                title: 'Users',
+                path: 'projects',
+                component: Projects,
+                title: 'Projects',
                 data: { roles: ['Admin', 'Developer', 'Manager']}
             },
             {
