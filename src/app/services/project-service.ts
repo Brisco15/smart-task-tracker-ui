@@ -23,13 +23,13 @@ export class ProjectService {
     return this.http.delete(`${this.apiUrl}/projects/${projectID}`)
   }
 
-  updateProject(projectID: number, projectData: Projects){
-    return this.http.put(`${this.apiUrl}/projects/${projectID}`,{
-      projectName: projectData.projectName,
-      description: projectData.description,
-      startDate: projectData.startDate
-    })
-  }
+  // updateProject(projectID: number, projectData: Projects){
+  //   return this.http.put(`${this.apiUrl}/projects/${projectID}`,{
+  //     projectName: projectData.projectName,
+  //     description: projectData.description,
+  //     startDate: projectData.startDate
+  //   })
+  // }
 
   archiveProject(projectID: number){
     return this.http.patch(`${this.apiUrl}/projects/${projectID}/archive`, {})

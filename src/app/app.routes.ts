@@ -49,6 +49,7 @@ export const routes: Routes = [
                 path: 'projects',
                 component: Projects,
                 title: 'Projects',
+                canActivate: [roleGuardGuard],
                 data: { roles: ['Admin', 'Developer', 'Manager']}
             },
             {
