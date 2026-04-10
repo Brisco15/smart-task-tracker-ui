@@ -9,7 +9,7 @@ import { MatCheckbox } from '@angular/material/checkbox';
 import { ProjectService } from '../../services/project-service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CreateProjectDialog } from '../create-project-dialog/create-project-dialog';
-
+import { Auth } from '../../services/auth';
 
 
 
@@ -31,7 +31,8 @@ export class Projects implements OnInit {
   constructor(
     private projectService: ProjectService,
     private dialog: MatDialog,
-    private cdr : ChangeDetectorRef
+    private cdr : ChangeDetectorRef,
+    private authService : Auth
 
   ){}
 
@@ -86,12 +87,22 @@ export class Projects implements OnInit {
 
 
   createProject(){
+    // Get role of the user that is trying to create a project
+    const userRole = this.authService.getUserRole();
+    console.log('current Role:', userRole)
+    if(userRole !== 'Manager'){
+      alert('You do not have permission to perform this action')
+      return ;
+    }
     const dialogRef = this.dialog.open(CreateProjectDialog, {
       height: '500px',
       width: '600px',
     });
 
+    
 
+
+    
   }
 
   editProject(projectID: number) { }
