@@ -1,0 +1,42 @@
+<h2 mat-dialog-title style="text-align: center; font-size: medium;padding-top: 10px;">Create a new project</h2>
+
+<form [formGroup]="form" style="padding: 16px">
+  <mat-form-field appearance="fill" style="width: 100%;">
+    <mat-label>Name</mat-label>
+    <input matInput formControlName="projectName" maxlength="50">
+  </mat-form-field>
+
+  <mat-form-field appearance="fill" style="width: 100%;">
+    <mat-label>Description</mat-label>
+    <input matInput formControlName="description" maxlength="500">
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Enter a date range</mat-label>
+    <mat-date-range-input [rangePicker]="picker">
+        <input matStartDate formControlName="startDate" placeholder="Start date">
+        <input matEndDate formControlName="endDate" placeholder="End date">
+    </mat-date-range-input>
+    <mat-hint>MM/DD/YYYY - MM/DD/YYYY</mat-hint>
+    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-date-range-picker #picker></mat-date-range-picker>
+
+    @if (form.get('startDate')?.hasError('required')) {
+      <mat-error>Start date is required</mat-error>
+    }
+    @if (form.get('endDate')?.hasError('required')) {
+      <mat-error>End date is required</mat-error>
+    }
+    @if (form.get('startDate')?.hasError('matStartDateInvalid')) {
+      <mat-error>Invalid start date</mat-error>
+    }
+    @if (form.get('endDate')?.hasError('matEndDateInvalid')) {
+      <mat-error>Invalid end date</mat-error>
+    }
+</mat-form-field>
+
+ <div style="text-align: right; margin-top: 16px; display: flex; justify-content: space-around;">
+    <button mat-raised-button style="background-color: rgb(228, 21, 21);" (click)="cancel()">Cancel</button>
+    <button mat-raised-button style="background-color: rgb(21, 228, 31);" type="submit" (click)="submit()" [disabled]="form.invalid">Create</button>
+  </div>
+</form>

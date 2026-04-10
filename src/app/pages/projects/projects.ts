@@ -8,6 +8,7 @@ import { HttpClient } from '@angular/common/http';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { ProjectService } from '../../services/project-service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { CreateProjectDialog } from '../create-project-dialog/create-project-dialog';
 
 
 
@@ -85,6 +86,11 @@ export class Projects implements OnInit {
 
 
   createProject(){
+    const dialogRef = this.dialog.open(CreateProjectDialog, {
+      height: '500px',
+      width: '600px',
+    });
+
 
   }
 
