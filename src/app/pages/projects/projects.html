@@ -5,17 +5,17 @@
 </div>
 
 <!-- Loading State -->
-<div ngIf=" isLoadingProjects" style="padding: 20px; text-align: center; background: #e3f2fd; border-radius: 4px;">
+<div *ngIf=" isLoadingProjects" style="padding: 20px; text-align: center; background: #e3f2fd; border-radius: 4px;">
     Loading projects...
 </div>
 
 <!-- Error State -->
-<div ngIf="error" style="padding: 15px; background-color:#ffebee ; border-radius: 4px; color: red">
+<div *ngIf="error" style="padding: 15px; background-color:#ffebee ; border-radius: 4px; color: red">
     {{error}}
 </div>
 
 <!-- Projects Table -->
-<div class="table-container" ngIf="!isLoadingProjects && dataSource.data.length > 0">
+<div class="table-container" *ngIf="!isLoadingProjects && dataSource.data.length > 0">
     <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
       
         <!-- projectID Column -->
