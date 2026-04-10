@@ -39,30 +39,29 @@ export class Projects implements OnInit {
     this.loadProjects()
   }
 
+  // Load projects from the backend
   loadProjects(){
     this.isLoadingProjects = true;
     this.error = null;
-    
-    console.log('📥 Calling getAllProjects()...');
-
+    // Call the service to get projects
     this.projectService.getAllProjects().subscribe({
       next: (data: any) =>{
-        console.log('✅ Projects loaded:', data);
+        // Filter out archived projects
         const activeProjects = data.filter((project: ProjectDTO) => !project.archived)
+        // Update the projects array and data source
         this.projects = activeProjects;
-
+        // Update the data source for the table
         this.dataSource.data = activeProjects;
+        // Set loading to false after data is loaded
         this.isLoadingProjects = false;
-
+        // Trigger change detection to update the UI
         this.cdr.detectChanges();
-
-        console.log('📊 DataSource updated, count:', this.dataSource.data.length);
       },
       error : (error) => {
         console.error('Error loading projects:', error);
         console.error('Error status:', error.status);
         console.error('Error message:', error.message);
-
+        // Handle authentication errors
         if(error.status === 401 || error.status === 403){
           alert('Access denied. Token may be invalid or expired');
           localStorage.removeItem('token');
@@ -70,21 +69,16 @@ export class Projects implements OnInit {
         } else {
           this.error = 'Failed to load projects';
         }
-
         this.isLoadingProjects = false;
         this.cdr.detectChanges();
-        
-        
-        
       }
     })
-
   }
-
+  // Check if any loading is in progress
   getanyLoading(): boolean {
     return this.isLoadingProjects
   }
-
+  // TrackBy function for ngFor to optimize rendering
   trackBy = (index: number, item: any): any => {
     return item.projectID || item.id || index;
   }
@@ -94,14 +88,18 @@ export class Projects implements OnInit {
 
   }
 
-  editProject(projectID:number){}
+  editProject(projectID: number) { }
 
-  deleteProject(projectID: number){
-    if(!confirm('Are you sure you want to delete this project?')) return;
+  // Delete a project with confirmation
+  deleteProject(projectID: number) {
+    // Show confirmation dialog before deleting
+    if (!confirm('Are you sure you want to delete this project?')) return;
+    // Call the service to delete the project
     this.projectService.deleteProject(projectID).subscribe({
       next:()=> {
         this.loadProjects();
       },
+      // Handle errors during deletion
       error: (error)=>{
         console.error('Error deleting project:',error);
         if(error.status === 403){

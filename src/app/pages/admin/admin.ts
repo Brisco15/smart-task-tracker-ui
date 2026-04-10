@@ -39,23 +39,7 @@ export class AdminComponent implements OnInit{
   ) { }
 
   ngOnInit(): void {
-
-    const token = localStorage.getItem('token');
-    if(!token){
-      console.warn('No token found, redirecting to login');
-      this.router.navigateByUrl('/login')
-      return;
-    }
-
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      
-      } catch (e) { 
-        localStorage.removeItem('token');
-        this.router.navigateByUrl('/login');
-        return;
-      }
-      this.loadUsers();
+    this.loadUsers();
   }
 
  loadUsers() {
@@ -113,8 +97,7 @@ export class AdminComponent implements OnInit{
           alert('You do not have permission to perform this action')
         }else{
           alert('Failed to delete the user')
-        }
-        
+        } 
       }
     })
   }
