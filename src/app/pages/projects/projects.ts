@@ -96,7 +96,22 @@ export class Projects implements OnInit {
 
   editProject(projectID:number){}
 
-  deleteProject(projectID: number){}
+  deleteProject(projectID: number){
+    if(!confirm('Are you sure you want to delete this project?')) return;
+    this.projectService.deleteProject(projectID).subscribe({
+      next:()=> {
+        this.loadProjects();
+      },
+      error: (error)=>{
+        console.error('Error deleting project:',error);
+        if(error.status === 403){
+          alert('You do not have permission to perform this action')
+        }else{
+          alert('Failed to delete the project')
+        } 
+      }
+    })
+  }
 
   archiveProject(projectID: number){}
 
