@@ -69,6 +69,26 @@ export class Auth {
       }
     }
 
+    getCurrentUserID(): number | null {
+      const token = this.getToken();
+      if (!token) {
+        console.log('No token found');
+        return null;
+      }
+
+  try {
+    const decoded = jwtDecode<any>(token);
+    const userId = decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']
+                || decoded['nameid']
+                || decoded['sub'];
+    
+                return userId ? parseInt(userId, 10) : null;
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return null;
+  }
+}
+
     logout(): void{
       localStorage.removeItem('token')
     }

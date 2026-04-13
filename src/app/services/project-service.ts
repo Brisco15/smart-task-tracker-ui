@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Projects } from '../pages/projects/projects';
+import { ProjectDTO } from '../interfaces/ProjectDTO';
 import { tap } from 'rxjs/operators';
 
 @Injectable({
@@ -23,7 +23,7 @@ export class ProjectService {
     return this.http.delete(`${this.apiUrl}/projects/${projectID}`)
   }
 
-  // updateProject(projectID: number, projectData: Projects){
+  // updateProject(projectID: number, projectData: ProjectDTO){
   //   return this.http.put(`${this.apiUrl}/projects/${projectID}`,{
   //     projectName: projectData.projectName,
   //     description: projectData.description,
@@ -35,10 +35,10 @@ export class ProjectService {
     return this.http.patch(`${this.apiUrl}/projects/${projectID}/archive`, {})
   }
 
-  postProject(projectID : number, newProject : Projects){
-     return this.http.post(`${this.apiUrl}/projects/${projectID}`,newProject)
-     .pipe(tap(()=>console.log(' a new project was created')
-    ))
+  postProject(newProject: any){
+     return this.http.post(`${this.apiUrl}/projects`, newProject)
+     .pipe(tap(() => console.log('A new project was created'))
+    )
   }
 
 

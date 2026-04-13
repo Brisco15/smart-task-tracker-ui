@@ -48,6 +48,8 @@ export class CreateProjectDialog {
 
   submit(){
     if(this.form.valid){
+      console.log('form value:', this.form.value);
+      
       this.dialogRef.close(this.form.value);
     }
   }
