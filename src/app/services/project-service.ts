@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ProjectDTO } from '../interfaces/ProjectDTO';
 import { tap } from 'rxjs/operators';
 
@@ -12,7 +12,12 @@ export class ProjectService {
   constructor(private http : HttpClient){}
 
   getAllProjects(){
-    return this.http.get(`${this.apiUrl}/projects`)
+  const headers = new HttpHeaders({
+  'Cache-Control': 'no-cache, no-store, must-revalidate',
+  'Pragma': 'no-cache',
+  'Expires': '0'
+  });
+    return this.http.get(`${this.apiUrl}/projects`, { headers})
   }
 
   getAProject(projectID: number){
@@ -23,13 +28,9 @@ export class ProjectService {
     return this.http.delete(`${this.apiUrl}/projects/${projectID}`)
   }
 
-  // updateProject(projectID: number, projectData: ProjectDTO){
-  //   return this.http.put(`${this.apiUrl}/projects/${projectID}`,{
-  //     projectName: projectData.projectName,
-  //     description: projectData.description,
-  //     startDate: projectData.startDate
-  //   })
-  // }
+   updateProject(projectID: number, projectData: any) {
+   return this.http.put(`${this.apiUrl}/projects/${projectID}`, projectData);
+ }
 
   archiveProject(projectID: number){
     return this.http.patch(`${this.apiUrl}/projects/${projectID}/archive`, {})

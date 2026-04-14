@@ -1,0 +1,36 @@
+.edit-project-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 400px;
+  padding: 16px;
+}
+
+.form-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-top: 24px;
+}
+
+.form-buttons button {
+  flex: 1;
+}
+
+/* Ensure proper spacing for Material components */
+mat-form-field {
+  width: 100%;
+}
+
+/* Custom styling for readonly field */
+.readonly-field input {
+  color: rgba(0, 0, 0, 0.6);
+  cursor: not-allowed;
+}
+
+/* Dialog title styling */
+h2 {
+  margin: 0 0 16px 0;
+  font-size: 1.25rem;
+  font-weight: 500;
+}

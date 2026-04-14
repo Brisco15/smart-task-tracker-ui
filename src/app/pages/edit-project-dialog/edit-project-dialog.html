@@ -1,0 +1,31 @@
+<h2 mat-dialog-title>Edit Project</h2>
+
+<form [formGroup]="form" class="edit-project-form">
+  <mat-form-field appearance="fill" class="readonly-field">
+    <mat-label>Name</mat-label>
+    <input matInput formControlName="projectName" readonly>
+    <mat-hint>Project name cannot be changed</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Description</mat-label>
+    <input matInput formControlName="description" maxlength="500" required>
+    <mat-hint>Maximum 500 characters</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Project Date Range</mat-label>
+    <mat-date-range-input [rangePicker]="picker">
+        <input matStartDate formControlName="startDate" placeholder="Start date">
+        <input matEndDate formControlName="endDate" placeholder="End date">
+    </mat-date-range-input>
+    <mat-hint>MM/DD/YYYY - MM/DD/YYYY</mat-hint>
+    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-date-range-picker #picker></mat-date-range-picker>
+</mat-form-field>
+
+  <div class="form-buttons">
+    <button mat-button color="warn" (click)="onCancel()">Cancel</button>
+    <button mat-raised-button color="primary" type="submit" (click)="onSave()">Save Changes</button>
+  </div>
+</form>

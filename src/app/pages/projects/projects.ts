@@ -9,12 +9,12 @@ import { MatCheckbox } from '@angular/material/checkbox';
 import { ProjectService } from '../../services/project-service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CreateProjectDialog } from '../create-project-dialog/create-project-dialog';
+import { EditProjectDialog } from '../edit-project-dialog/edit-project-dialog';
 import { Auth } from '../../services/auth';
-
-
 
 @Component({
   selector: 'app-projects',
+  standalone: true,
   imports: [CommonModule, MatTableModule, MatButtonModule, MatCheckbox, MatDialogModule],
   templateUrl: './projects.html',
   styleUrl: './projects.css',
@@ -23,7 +23,7 @@ export class Projects implements OnInit {
   projects: ProjectDTO[] = [];
   error: string | null = null;
   dataSource = new MatTableDataSource<ProjectDTO>([]);
-  displayedColumns: string[] = ['projectID', 'projectName', 'description','createdBy', 'startDate', 'endDate', 'actions'];
+  displayedColumns: string[] = ['projectID', 'projectName', 'description', 'startDate', 'endDate', 'actions'];
   http = inject(HttpClient);
   router = inject(Router);
   isLoadingProjects = false;
@@ -31,39 +31,39 @@ export class Projects implements OnInit {
   constructor(
     private projectService: ProjectService,
     private dialog: MatDialog,
-    private cdr : ChangeDetectorRef,
-    private authService : Auth
-
+    private authService: Auth,
+    private cdr: ChangeDetectorRef 
   ){}
 
   ngOnInit(): void {
-    
-    this.loadProjects()
+    this.loadProjects();
   }
 
-  // Load projects from the backend
   loadProjects(){
     this.isLoadingProjects = true;
     this.error = null;
-    // Call the service to get projects
+    
     this.projectService.getAllProjects().subscribe({
-      next: (data: any) =>{
-        // Filter out archived projects
-        const activeProjects = data.filter((project: ProjectDTO) => !project.archived)
-        // Update the projects array and data source
+      next: (data: any) => {
+        console.log('📥 Projects loaded:', data);
+        
+        const activeProjects = data.filter((project: ProjectDTO) => !project.archived);
+        
+        // ✅ Neue DataSource Instanz erstellen statt nur data zu setzen
         this.projects = activeProjects;
-        // Update the data source for the table
-        this.dataSource.data = activeProjects;
-        // Set loading to false after data is loaded
+        this.dataSource = new MatTableDataSource<ProjectDTO>(activeProjects);
         this.isLoadingProjects = false;
-        // Trigger change detection to update the UI
-        this.cdr.detectChanges();
+        
+        // ✅ markForCheck() statt detectChanges()
+        this.cdr.markForCheck();
+        
+        console.log('✅ DataSource updated, count:', this.dataSource.data.length);
       },
-      error : (error) => {
-        console.error('Error loading projects:', error);
+      error: (error) => {
+        console.error('❌ Error loading projects:', error);
         console.error('Error status:', error.status);
         console.error('Error message:', error.message);
-        // Handle authentication errors
+        
         if(error.status === 401 || error.status === 403){
           alert('Access denied. Token may be invalid or expired');
           localStorage.removeItem('token');
@@ -72,65 +72,66 @@ export class Projects implements OnInit {
           this.error = 'Failed to load projects';
         }
         this.isLoadingProjects = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
-    })
+    });
   }
-  // Check if any loading is in progress
+
   getAnyLoading(): boolean {
-    return this.isLoadingProjects
+    return this.isLoadingProjects;
   }
-  // TrackBy function for ngFor to optimize rendering
+
   trackBy = (index: number, item: any): any => {
     return item.projectID || item.id || index;
   }
 
-
   createProject(){
-    // Get role of the user that is trying to create a project
     const userRole = this.authService.getUserRole();
-    console.log('current Role:', userRole)
+    console.log('current Role:', userRole);
+    
     if(userRole !== 'Manager'){
-      alert('You do not have permission to perform this action')
-      return ;
+      alert('You do not have permission to perform this action');
+      return;
     }
+    
     const dialogRef = this.dialog.open(CreateProjectDialog, {
       height: '500px',
       width: '400px',
     });
 
-    dialogRef.afterClosed().subscribe(result =>{
+    dialogRef.afterClosed().subscribe(result => {
       if(result){
-         const projectExists = this.projects.some(p => p.projectName === result.projectName)
-         if(projectExists){
+        const projectExists = this.projects.some(p => p.projectName === result.projectName);
+        if(projectExists){
           alert('There is already a project with this name');
           return;
         }
 
-        // Get the userID of the current logged-in user
         const currentUserID = this.authService.getCurrentUserID();
 
-        // Helper function to convert Date to YYYY-MM-DD format
         const formatDateOnly = (date: Date): string => {
           return date.toISOString().split('T')[0];
         };
 
-        // Create project payload in the format expected by the backend
         const newProject = {
-            projectName: result.projectName,
-            description: result.description,
-            startDate: formatDateOnly(result.startDate),
-            endDate: formatDateOnly(result.endDate),
-            createdBy: currentUserID
+          projectName: result.projectName,
+          description: result.description,
+          startDate: formatDateOnly(result.startDate),
+          endDate: formatDateOnly(result.endDate),
+          createdBy: currentUserID
         };
+        
         console.log('📤 Sending project to backend:', newProject);
 
         this.projectService.postProject(newProject).subscribe({
-           next: (response: any) => {
-            console.log('Project created successfully:', response);
+          next: (response: any) => {
+            console.log('✅ Project created successfully:', response);
             alert('Project created successfully!');
-            this.loadProjects(); // Refresh the project list
-           },
+            
+            setTimeout(() => {
+              this.loadProjects();
+            }, 0);
+          },
           error: (error: any) => {
             console.error('❌ Error creating project:', error);
             console.error('Error status:', error.status);
@@ -146,39 +147,106 @@ export class Projects implements OnInit {
               alert('Failed to create project. Please try again.');
             }
           }
-        })
+        });
       }
-    })
-
-    
-
-    
-
-
-    
+    });
   }
 
-  editProject(projectID: number) { }
+  editProject(projectID: number) {
+    const projectToEdit = this.projects.find(p => p.projectID === projectID);
+    if(!projectToEdit){
+      alert('Project not found');
+      return;
+    }
 
-  // Delete a project with confirmation
+    const dialogRef = this.dialog.open(EditProjectDialog, {
+      height: '500px',
+      width: '600px',
+      data: { project: projectToEdit }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if(result){
+        console.log('Dialog result:', result);
+        
+        const formatDateOnly = (date: Date | string | null): string | null => {
+          if (!date) return null;
+          if (typeof date === 'string') return date;
+          return date.toISOString().split('T')[0];
+        };
+        
+        const updatedProject = {
+          projectName: result.projectName,
+          description: result.description,
+          startDate: formatDateOnly(result.startDate),
+          endDate: formatDateOnly(result.endDate)
+        };
+
+        console.log('📤 Sending update to backend:', updatedProject);
+
+        this.projectService.updateProject(projectID, updatedProject).subscribe({
+          next: () => {
+            console.log('✅ Project updated successfully');
+            alert('Project updated successfully');
+
+            const projectIndex = this.projects.findIndex(p=>p.projectID === projectID);
+            if(projectIndex !== -1){
+              this.projects[projectIndex]= {
+                ...this.projects[projectIndex],
+                projectName: result.projectName,
+                description: result.description,
+                startDate: result.startDate,
+                endDate: result.endDate
+              };
+
+              this.dataSource = new MatTableDataSource<ProjectDTO>(this.projects);
+              this.cdr.markForCheck();
+            }
+            
+            setTimeout(() => {
+              this.loadProjects();
+            }, 100);   
+          },
+          error: (error) => {
+            console.error('❌ Error updating project:', error);
+            console.error('Error status:', error.status);
+            console.error('Error details:', error.error);
+          
+            if (error.status === 403) {
+              alert('You do not have permission to edit this project');
+            } else if(error.status === 409){
+              alert('A project with this name already exists');
+            } else if (error.status === 500){
+              alert('Server error. Please check the backend logs');
+            } else {
+              alert('Failed to update project');
+            }
+          }
+        });
+      }
+    });
+  }
+
   deleteProject(projectID: number) {
-    // Show confirmation dialog before deleting
     if (!confirm('Are you sure you want to delete this project?')) return;
-    // Call the service to delete the project
+    
     this.projectService.deleteProject(projectID).subscribe({
-      next:()=> {
-        this.loadProjects();
+      next: () => {
+        alert('Project deleted successfully');
+        
+        setTimeout(() => {
+          this.loadProjects();
+        }, 0);
       },
-      // Handle errors during deletion
-      error: (error)=>{
-        console.error('Error deleting project:',error);
+      error: (error) => {
+        console.error('Error deleting project:', error);
         if(error.status === 403){
-          alert('You do not have permission to perform this action')
-        }else{
-          alert('Failed to delete the project')
+          alert('You do not have permission to perform this action');
+        } else {
+          alert('Failed to delete the project');
         } 
       }
-    })
+    });
   }
 
   archiveProject(projectID: number){
@@ -188,9 +256,12 @@ export class Projects implements OnInit {
 
     this.projectService.archiveProject(projectID).subscribe({
       next: (response: any) => {
-        console.log('Project archived successfully:', response);
+        console.log('✅ Project archived successfully:', response);
         alert('Project archived successfully');
-        this.loadProjects(); // Refresh the list
+        
+        setTimeout(() => {
+          this.loadProjects();
+        }, 0);
       },
       error: (error) => {
         console.error('Error archiving project:', error);
@@ -202,7 +273,4 @@ export class Projects implements OnInit {
       }
     });
   }
-
-  
-
 }
