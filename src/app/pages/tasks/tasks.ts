@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -10,6 +10,9 @@ import { MatCheckbox } from '@angular/material/checkbox';
 import { ProjectService } from '../../services/project-service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Auth } from '../../services/auth';
+import { TaskService } from '../../services/task-service';
+import { Projects } from '../projects/projects';
+
 
 @Component({
   selector: 'app-tasks',
@@ -26,14 +29,22 @@ export class Tasks implements OnInit {
   router = inject(Router);
   isLoadingTasks = false;
 
-  constructor(){
+  constructor(
+    private taskService: TaskService,
+    private dialog: MatDialog,
+    private authService: Auth,
+    private cdr: ChangeDetectorRef,
+    private projectService: ProjectService
+  ){
 
   }
+  
 
   ngOnInit(): void {
     this.loadTasks()
   }
 
+  //TODO
   createTask(){}
 
   editTask(taskID: number){}

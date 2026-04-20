@@ -97,6 +97,7 @@ export class Projects implements OnInit {
     const dialogRef = this.dialog.open(CreateProjectDialog, {
       height: '500px',
       width: '400px',
+      
     });
 
     dialogRef.afterClosed().subscribe(result => {
