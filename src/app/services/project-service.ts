@@ -20,7 +20,7 @@ export class ProjectService {
     return this.http.get(`${this.apiUrl}/projects`, { headers})
   }
 
-  getAProject(projectID: number){
+  getProject(projectID: number){
     return this.http.get(`${this.apiUrl}/projects/${projectID}`)
   }
 
