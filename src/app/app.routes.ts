@@ -4,10 +4,11 @@ import { Register } from './pages/register/register';
 import { Dashboard } from './pages/dashboard/dashboard';
 import { authGuard } from './guards/auth-guard';
 import { roleGuardGuard } from './guards/role-guard-guard';
-import { Users } from './pages/users/users';
 import { AdminComponent } from './pages/admin/admin';
 import { Layout } from './pages/layout/layout';
 import { Projects } from './pages/projects/projects';
+import { Tasks } from './pages/tasks/tasks';
+
 
 
 
@@ -49,6 +50,13 @@ export const routes: Routes = [
                 path: 'projects',
                 component: Projects,
                 title: 'Projects',
+                canActivate: [roleGuardGuard],
+                data: { roles: ['Admin', 'Developer', 'Manager']}
+            },
+            {
+                path: 'tasks',
+                component: Tasks,
+                title: 'Tasks',
                 canActivate: [roleGuardGuard],
                 data: { roles: ['Admin', 'Developer', 'Manager']}
             },

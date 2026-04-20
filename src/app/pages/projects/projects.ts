@@ -23,7 +23,7 @@ export class Projects implements OnInit {
   projects: ProjectDTO[] = [];
   error: string | null = null;
   dataSource = new MatTableDataSource<ProjectDTO>([]);
-  displayedColumns: string[] = ['projectID', 'projectName', 'description', 'startDate', 'endDate', 'actions'];
+  displayedColumns: string[] = ['projectID', 'projectName', 'description', 'startDate', 'endDate','createdBy', 'actions'];
   http = inject(HttpClient);
   router = inject(Router);
   isLoadingProjects = false;

@@ -1,1 +1,89 @@
-<p>tasks works!</p>
+<div class="create-button">
+  <button mat-raised-button color="primary" (click)="createTask()">
+    New Task
+  </button>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="isLoadingTasks" style="padding: 20px; text-align: center; background: #e3f2fd; border-radius: 4px;">
+    Loading tasks...
+</div>
+
+<!-- Error State -->
+<div *ngIf="error" style="padding: 15px; background-color:#ffebee ; border-radius: 4px; color: red">
+    {{error}}
+</div>
+
+<!-- Projects Table -->
+<div class="table-container" *ngIf="!isLoadingTasks && dataSource.data.length > 0">
+    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+      
+        <!-- taskID Column -->
+        <ng-container matColumnDef="taskID">
+            <th mat-header-cell *matHeaderCellDef>ID</th>
+            <td mat-cell *matCellDef="let task">{{task.taskID}}</td>
+        </ng-container>
+
+        <!-- title Column -->
+        <ng-container matColumnDef="title">
+            <th mat-header-cell *matHeaderCellDef>Title</th>
+            <td mat-cell *matCellDef="let task">{{task.title}}</td>
+        </ng-container>
+
+         <!-- description Column -->
+        <ng-container matColumnDef="description">
+            <th mat-header-cell *matHeaderCellDef>Description</th>
+            <td mat-cell *matCellDef="let task">{{task.description}}</td>
+        </ng-container>
+
+         <!-- startDate Column -->
+        <ng-container matColumnDef="assignedTo">
+            <th mat-header-cell *matHeaderCellDef>Assigned To</th>
+            <td mat-cell *matCellDef="let task">{{task.assignedTo}}</td>
+        </ng-container>
+
+         <!-- projectID Column -->
+        <ng-container matColumnDef="projectID">
+            <th mat-header-cell *matHeaderCellDef>End</th>
+            <td mat-cell *matCellDef="let task">{{task.projectID}}</td>
+        </ng-container>
+
+        <!-- status Column -->
+        <ng-container matColumnDef="statusID">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let task">{{task.statusID}}</td>
+        </ng-container>
+
+        <!-- priority Column -->
+        <ng-container matColumnDef="priorityID">
+            <th mat-header-cell *matHeaderCellDef>Priority</th>
+            <td mat-cell *matCellDef="let task">{{task.priorityID}}</td>
+        </ng-container>
+
+        <!-- actions Column -->
+        <ng-container matColumnDef="actions">
+         <th mat-header-cell *matHeaderCellDef>Actions</th>
+         <td mat-cell *matCellDef="let task">
+           <div class="action-buttons">
+              <button mat-raised-button color="primary" (click)="editTask(task.taskID)">
+               Edit
+              </button>
+              <button mat-raised-button color="warn" (click)="deleteTask(task.taskID)" style="margin-left: 8px;">
+               Delete
+              </button>
+              <mat-checkbox (change)="archiveTask(task.taskID)" style="margin-left: 8px;">
+               Archive
+              </mat-checkbox>
+           </div>
+         </td>
+        </ng-container>
+
+       <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+       <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+</div>
+
+<div *ngIf="!isLoadingTasks && !error && dataSource.data.length === 0" 
+     style="padding: 20px; text-align: center; background: #fff3cd; border-radius: 4px;">
+  <p>No task found. <button mat-button color="primary" (click)="loadTasks()">Retry</button></p>
+</div>
