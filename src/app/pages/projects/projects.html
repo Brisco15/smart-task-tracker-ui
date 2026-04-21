@@ -2,16 +2,29 @@
   <button mat-raised-button color="primary" (click)="createProject()">
     New Project
   </button>
+  <button mat-button (click)="showDebugPanel = !showDebugPanel" style="margin-left: 10px;">
+    {{ showDebugPanel ? 'Hide' : 'Show' }} Debug Info
+  </button>
+  <button mat-button color="accent" (click)="forceRefresh()" style="margin-left: 10px;">
+    Force Refresh
+  </button>
+</div>
+
+<!-- Debug Panel -->
+<div *ngIf="showDebugPanel" style="padding: 10px; background: #f5f5f5; border-radius: 4px; margin-bottom: 10px; font-family: monospace; font-size: 12px;">
+  <strong>Debug Info:</strong><br>
+  <pre>{{ getDebugInfo() | json }}</pre>
 </div>
 
 <!-- Loading State -->
-<div *ngIf=" isLoadingProjects" style="padding: 20px; text-align: center; background: #e3f2fd; border-radius: 4px;">
+<div *ngIf="isLoadingProjects" style="padding: 20px; text-align: center; background: #e3f2fd; border-radius: 4px;">
     Loading projects...
 </div>
 
-<!-- Error State -->
-<div *ngIf="error" style="padding: 15px; background-color:#ffebee ; border-radius: 4px; color: red">
-    {{error}}
+<!-- Error State with Retry -->
+<div *ngIf="error" style="padding: 15px; background-color:#ffebee ; border-radius: 4px; color: red; margin-bottom: 10px;">
+    <p>{{error}}</p>
+    <button mat-button color="primary" (click)="loadProjects()">Retry</button>
 </div>
 
 <!-- Projects Table -->
@@ -76,6 +89,13 @@
        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
     </table>
 </div>
+
+<!-- ✅ Paginator OHNE *ngIf - immer gerendert, nur visuell versteckt -->
+<mat-paginator [hidden]="isLoadingProjects || error || dataSource.data.length === 0"
+               [pageSizeOptions]="[5, 10, 20]"
+               showFirstLastButtons
+               aria-label="Select page of projects">
+</mat-paginator>
 
 <div *ngIf="!isLoadingProjects && !error && dataSource.data.length === 0" 
      style="padding: 20px; text-align: center; background: #fff3cd; border-radius: 4px;">

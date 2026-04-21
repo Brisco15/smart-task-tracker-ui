@@ -1,7 +1,8 @@
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit, AfterViewInit, ViewChild, OnDestroy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { CommonModule } from '@angular/common';
 import { ProjectDTO } from '../../interfaces/ProjectDTO';
 import { HttpClient } from '@angular/common/http';
@@ -15,11 +16,12 @@ import { Auth } from '../../services/auth';
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatCheckbox, MatDialogModule],
+  imports: [CommonModule, MatPaginator,MatPaginatorModule, MatTableModule, MatButtonModule, MatCheckbox, MatDialogModule],
   templateUrl: './projects.html',
   styleUrl: './projects.css',
 })
-export class Projects implements OnInit {
+export class Projects implements OnInit, AfterViewInit, OnDestroy {
+
   projects: ProjectDTO[] = [];
   error: string | null = null;
   dataSource = new MatTableDataSource<ProjectDTO>([]);
@@ -27,7 +29,10 @@ export class Projects implements OnInit {
   http = inject(HttpClient);
   router = inject(Router);
   isLoadingProjects = false;
+  showDebugPanel = false;  // Add debug panel toggle
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
+ 
   constructor(
     private projectService: ProjectService,
     private dialog: MatDialog,
@@ -36,28 +41,101 @@ export class Projects implements OnInit {
   ){}
 
   ngOnInit(): void {
+    console.log('🔄 Component initialized');
+    // Validate token before loading
+    this.validateAndLoadProjects();
+  }
+
+  private validateAndLoadProjects(): void {
+    const token = localStorage.getItem('token');
+    console.log('🔍 Token check:', !!token);
+    
+    if (!token) {
+      console.log('❌ No token found, redirecting to login');
+      this.router.navigateByUrl('/login');
+      return;
+    }
+    
+    // Check if token is expired (basic check)
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const isExpired = Date.now() >= payload.exp * 1000;
+      if (isExpired) {
+        console.log('❌ Token expired, redirecting to login');
+        localStorage.removeItem('token');
+        this.router.navigateByUrl('/login');
+        return;
+      }
+    } catch (e) {
+      console.log('❌ Invalid token format, redirecting to login');
+      localStorage.removeItem('token');
+      this.router.navigateByUrl('/login');
+      return;
+    }
+    
     this.loadProjects();
   }
 
-  loadProjects(){
-    this.isLoadingProjects = true;
+  ngAfterViewInit(): void{
+    // Paginator verbinden
+    this.dataSource.paginator = this.paginator;
+    console.log('🔗 Paginator connected:', this.paginator);
+    
+    // Force reconnect paginator after view init
+    setTimeout(() => {
+      if (this.paginator && this.dataSource.data.length > 0) {
+        this.dataSource.paginator = this.paginator;
+        console.log('🔗 Paginator re-connected after timeout');
+      }
+    }, 0);
+  }
+  
+  ngOnDestroy(): void {
+    console.log('🔄 Component destroyed');
+  }
+  
+  // Force refresh method
+  forceRefresh(): void {
+    console.log('🔄 Force refresh triggered');
     this.error = null;
+    this.projects = [];
+    this.dataSource.data = [];
+    this.validateAndLoadProjects();
+  }
+
+  loadProjects(){
+    console.log('🔄 loadProjects() called');
+    this.isLoadingProjects = true;
+    this.error = null;  // Always reset error state
+    
+    console.log('🔄 Starting to load projects...');
     
     this.projectService.getAllProjects().subscribe({
       next: (data: any) => {
-        console.log('📥 Projects loaded:', data);
+        console.log('📥 Raw data received:', data);
+        console.log('📊 Data type:', typeof data);
+        console.log('📊 Is Array:', Array.isArray(data));
         
         const activeProjects = data.filter((project: ProjectDTO) => !project.archived);
+        console.log('✅ Active projects after filter:', activeProjects);
+        console.log('✅ Active projects count:', activeProjects.length);
         
-        // ✅ Neue DataSource Instanz erstellen statt nur data zu setzen
         this.projects = activeProjects;
-        this.dataSource = new MatTableDataSource<ProjectDTO>(activeProjects);
+        this.dataSource.data = activeProjects;
+        
+        // Paginator nach Datenaktualisierung neu setzen
+        if (this.paginator) {
+          this.dataSource.paginator = this.paginator;
+          console.log('✅ Paginator re-connected');
+        }
+        
         this.isLoadingProjects = false;
+        this.cdr.markForCheck();  // Force change detection
         
-        // ✅ markForCheck() statt detectChanges()
-        this.cdr.markForCheck();
-        
-        console.log('✅ DataSource updated, count:', this.dataSource.data.length);
+        console.log('✅ Final state - DataSource.data.length:', this.dataSource.data.length);
+        console.log('✅ Final state - isLoadingProjects:', this.isLoadingProjects);
+        console.log('✅ Final state - error:', this.error);
+        console.log('✅ Final state - Should show table?', !this.isLoadingProjects && this.dataSource.data.length > 0);
       },
       error: (error) => {
         console.error('❌ Error loading projects:', error);
@@ -65,11 +143,16 @@ export class Projects implements OnInit {
         console.error('Error message:', error.message);
         
         if(error.status === 401 || error.status === 403){
-          alert('Access denied. Token may be invalid or expired');
+          console.log('🔄 Auth error, redirecting to login');
+          alert('Session expired. Please login again.');
           localStorage.removeItem('token');
           this.router.navigateByUrl('/login');
+        } else if (error.status === 0) {
+          console.log('❌ No internet connection or CORS issue');
+          this.error = 'Network error. Please check your connection and try again.';
         } else {
-          this.error = 'Failed to load projects';
+          console.log('❌ API Error:', error);
+          this.error = `Failed to load projects (Error: ${error.status || 'Unknown'})`;
         }
         this.isLoadingProjects = false;
         this.cdr.markForCheck();
@@ -129,9 +212,7 @@ export class Projects implements OnInit {
             console.log('✅ Project created successfully:', response);
             alert('Project created successfully!');
             
-            setTimeout(() => {
-              this.loadProjects();
-            }, 0);
+            this.loadProjects();
           },
           error: (error: any) => {
             console.error('❌ Error creating project:', error);
@@ -190,23 +271,7 @@ export class Projects implements OnInit {
             console.log('✅ Project updated successfully');
             alert('Project updated successfully');
 
-            const projectIndex = this.projects.findIndex(p=>p.projectID === projectID);
-            if(projectIndex !== -1){
-              this.projects[projectIndex]= {
-                ...this.projects[projectIndex],
-                projectName: result.projectName,
-                description: result.description,
-                startDate: result.startDate,
-                endDate: result.endDate
-              };
-
-              this.dataSource = new MatTableDataSource<ProjectDTO>(this.projects);
-              this.cdr.markForCheck();
-            }
-            
-            setTimeout(() => {
-              this.loadProjects();
-            }, 100);   
+            this.loadProjects();
           },
           error: (error) => {
             console.error('❌ Error updating project:', error);
@@ -235,9 +300,7 @@ export class Projects implements OnInit {
       next: () => {
         alert('Project deleted successfully');
         
-        setTimeout(() => {
-          this.loadProjects();
-        }, 0);
+        this.loadProjects();
       },
       error: (error) => {
         console.error('Error deleting project:', error);
@@ -260,9 +323,7 @@ export class Projects implements OnInit {
         console.log('✅ Project archived successfully:', response);
         alert('Project archived successfully');
         
-        setTimeout(() => {
-          this.loadProjects();
-        }, 0);
+        this.loadProjects();
       },
       error: (error) => {
         console.error('Error archiving project:', error);
@@ -273,5 +334,19 @@ export class Projects implements OnInit {
         }
       }
     });
+  }
+  
+  // Helper method for debugging
+  getDebugInfo(): any {
+    const token = localStorage.getItem('token');
+    return {
+      hasToken: !!token,
+      projectsCount: this.projects.length,
+      dataSourceCount: this.dataSource.data.length,
+      isLoading: this.isLoadingProjects,
+      error: this.error,
+      showTable: !this.isLoadingProjects && this.dataSource.data.length > 0,
+      hasPaginator: !!this.paginator
+    };
   }
 }
