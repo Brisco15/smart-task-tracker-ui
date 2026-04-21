@@ -23,6 +23,10 @@ export class TaskService {
     return this.http.get(`${this.apiUrl}/taskItems/${taskID}`)
   }
 
+  getTasksByProject(projectId: number) {
+  return this.http.get(`${this.apiUrl}/tasks/project/${projectId}`);
+  }
+
   deleteTask(taskID: number){
     return this.http.delete(`${this.apiUrl}/taskItems/${taskID}`)
   }

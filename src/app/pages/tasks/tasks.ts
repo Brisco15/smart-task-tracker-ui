@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
 import { ProjectDTO } from '../../interfaces/ProjectDTO';
@@ -12,6 +12,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Auth } from '../../services/auth';
 import { TaskService } from '../../services/task-service';
 import { Projects } from '../projects/projects';
+
 
 
 @Component({
@@ -28,19 +29,23 @@ export class Tasks implements OnInit {
   http = inject(HttpClient);
   router = inject(Router);
   isLoadingTasks = false;
+  projectId!: number
+  
 
   constructor(
     private taskService: TaskService,
     private dialog: MatDialog,
     private authService: Auth,
     private cdr: ChangeDetectorRef,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private route: ActivatedRoute
   ){
 
   }
   
 
   ngOnInit(): void {
+    this.projectId = Number(this.route.snapshot.paramMap.get('projectId'));
     this.loadTasks()
   }
 
@@ -53,7 +58,11 @@ export class Tasks implements OnInit {
 
   archiveTask(taskID: number){}
 
-  loadTasks(){}
+  loadTasks(){
+    return this.taskService.getTasksByProject(this.projectId).subscribe((data: any)=>{
+      this.tasks = data;
+    })
+  }
 
 }
 ///////////////////////////////

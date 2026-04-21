@@ -85,6 +85,9 @@
               <mat-checkbox (change)="archiveProject(project.projectID)" style="margin-left: 8px;">
                Archive
               </mat-checkbox>
+              <button mat-raised-button color="primary" (click)="goToTasks(project.projectID)" style="background-color: aquamarine;">
+               View Tasks
+              </button>
            </div>
          </td>
         </ng-container>

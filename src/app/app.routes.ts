@@ -61,6 +61,12 @@ export const routes: Routes = [
                 data: { roles: ['Admin', 'Developer', 'Manager']}
             },
             {
+                path: 'projects/:projectId/tasks',
+                component: Tasks,
+                canActivate: [roleGuardGuard],
+                data: { roles: ['Admin', 'Developer', 'Manager']}
+            },
+            {
                 path: '**',
                 redirectTo: 'login'
             }

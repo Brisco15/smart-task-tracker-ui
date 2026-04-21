@@ -77,7 +77,7 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void{
-    // Paginator verbinden
+    // Connect Paginator
     this.dataSource.paginator = this.paginator;
     console.log('🔗 Paginator connected:', this.paginator);
     
@@ -334,6 +334,12 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
         }
       }
     });
+  }
+
+  // Go to Task Method
+  goToTasks(projectID: number){
+    this.router.navigate(['/projects', projectID, 'tasks']);
+
   }
   
   // Helper method for debugging
