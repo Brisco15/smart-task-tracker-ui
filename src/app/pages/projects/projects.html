@@ -46,7 +46,11 @@
          <!-- description Column -->
         <ng-container matColumnDef="description">
             <th mat-header-cell *matHeaderCellDef>Description</th>
-            <td mat-cell *matCellDef="let project">{{project.description}}</td>
+            <td mat-cell *matCellDef="let project" 
+                class="description-cell" 
+                [title]="project.description">
+                {{project.description}}
+            </td>
         </ng-container>
 
          <!-- startDate Column -->
