@@ -59,6 +59,135 @@ button {
   position: relative;
   margin-left: 10px;
   margin-right: 10px;
+  width: 100%;
+  /* Ensure horizontal scrolling if needed */
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+}
+
+.mat-elevation-z8 {
+  box-shadow: 0px 5px 5px -3px rgba(0, 0, 0, 0.2);
+}
+
+/* Material table improvements */
+.mat-mdc-table {
+  width: 100%;
+  table-layout: fixed; /* Force fixed layout for consistent column widths */
+}
+
+/* Column width controls for tasks table */
+.mat-mdc-table .mat-mdc-header-cell:nth-child(1), 
+.mat-mdc-table .mat-mdc-cell:nth-child(1) { /* Task ID */
+  width: 60px;
+  min-width: 60px;
+  max-width: 60px;
+}
+
+.mat-mdc-table .mat-mdc-header-cell:nth-child(2), 
+.mat-mdc-table .mat-mdc-cell:nth-child(2) { /* Title */
+  width: 150px;
+  min-width: 150px;
+  max-width: 150px;
+}
+
+.mat-mdc-table .mat-mdc-header-cell:nth-child(3), 
+.mat-mdc-table .mat-mdc-cell:nth-child(3) { /* Description */
+  width: 200px;
+  min-width: 200px;
+  max-width: 200px;
+}
+
+.mat-mdc-table .mat-mdc-header-cell:nth-child(4), 
+.mat-mdc-table .mat-mdc-cell:nth-child(4) { /* Assigned To */
+  width: 120px;
+  min-width: 120px;
+  max-width: 120px;
+}
+
+.mat-mdc-table .mat-mdc-header-cell:nth-child(5), 
+.mat-mdc-table .mat-mdc-cell:nth-child(5) { /* Project ID */
+  width: 80px;
+  min-width: 80px;
+  max-width: 80px;
+}
+
+.mat-mdc-table .mat-mdc-header-cell:nth-child(6), 
+.mat-mdc-table .mat-mdc-cell:nth-child(6) { /* Status */
+  width: 80px;
+  min-width: 80px;
+  max-width: 80px;
+}
+
+.mat-mdc-table .mat-mdc-header-cell:nth-child(7), 
+.mat-mdc-table .mat-mdc-cell:nth-child(7) { /* Priority */
+  width: 80px;
+  min-width: 80px;
+  max-width: 80px;
+}
+
+.mat-mdc-table .mat-mdc-header-cell:nth-child(8), 
+.mat-mdc-table .mat-mdc-cell:nth-child(8) { /* Actions */
+  width: 280px;
+  min-width: 280px;
+  max-width: 280px;
+}
+
+/* Text overflow handling */
+.mat-mdc-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 8px 12px !important;
+  word-wrap: break-word;
+}
+
+/* Special handling for description column */
+.description-cell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: help;
+  position: relative;
+}
+
+/* Tooltip for description on hover */
+.description-cell:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  white-space: normal;
+  max-width: 300px;
+  word-wrap: break-word;
+  z-index: 1000;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.mat-mdc-header-row {
+  background-color: #cec3c3;
+}
+
+.action-buttons button {
+  margin: 0;
+  min-width: 60px;
+}
+
+.table-container {
+  max-height: 600px;
+  overflow: auto;
+  position: relative;
+  margin-left: 10px;
+  margin-right: 10px;
 }
 
 table {
@@ -144,6 +273,100 @@ button:nth-child(2) {
 
 button:hover {
   opacity: 0.8;
+}
+
+/* Loading and error state styling */
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #666;
+}
+
+.error-state {
+  padding: 20px;
+  background-color: #ffebee;
+  border: 1px solid #e57373;
+  border-radius: 4px;
+  color: #c62828;
+  margin: 10px 0;
+}
+
+.no-data-state {
+  text-align: center;
+  padding: 40px 20px;
+  background: #fff3cd;
+  border-radius: 4px;
+  color: #856404;
+}
+
+.no-data-state button {
+  margin-top: 10px;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 1200px) {
+  .mat-mdc-table .mat-mdc-header-cell:nth-child(3), 
+  .mat-mdc-table .mat-mdc-cell:nth-child(3) { /* Description */
+    width: 150px;
+    min-width: 150px;
+    max-width: 150px;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-container {
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+  
+  .mat-mdc-table .mat-mdc-header-cell:nth-child(3), 
+  .mat-mdc-table .mat-mdc-cell:nth-child(3) { /* Description */
+    width: 120px;
+    min-width: 120px;
+    max-width: 120px;
+  }
+  
+  .mat-mdc-table .mat-mdc-header-cell:nth-child(8), 
+  .mat-mdc-table .mat-mdc-cell:nth-child(8) { /* Actions */
+    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .action-buttons button {
+    width: 100%;
+    margin: 0;
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+}
+
+/* Better scrollbar styling */
+.table-container::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 

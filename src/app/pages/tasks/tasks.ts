@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit, AfterViewInit, ViewChild, OnDestroy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { CommonModule } from '@angular/common';
 import { ProjectDTO } from '../../interfaces/ProjectDTO';
 import { TaskDTO } from '../../interfaces/TaskDTO';
@@ -18,19 +19,21 @@ import { CreateTaskDialog } from '../create-task-dialog/create-task-dialog';
 
 @Component({
   selector: 'app-tasks',
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatCheckbox, MatDialogModule],
+  imports: [CommonModule, MatPaginator, MatPaginatorModule, MatTableModule, MatButtonModule, MatCheckbox, MatDialogModule],
   templateUrl: './tasks.html',
   styleUrl: './tasks.css',
 })
-export class Tasks implements OnInit {
+export class Tasks implements OnInit, AfterViewInit, OnDestroy {
   tasks: TaskDTO[] = [];
   error: string | null = null;
   dataSource = new MatTableDataSource<TaskDTO>([]);
-  displayedColumns: string[] = ['taskID','title','description','createdBy','projectID','statusID','priorityID','assignedTo','actions'];
+  displayedColumns: string[] = ['taskID','title','description','assignedTo','projectID','statusID','priorityID','actions'];
   http = inject(HttpClient);
   router = inject(Router);
   isLoadingTasks = false;
-  projectId!: number
+  showDebugPanel = false;
+  projectId!: number;
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
   
 
   constructor(
@@ -46,8 +49,36 @@ export class Tasks implements OnInit {
   
 
   ngOnInit(): void {
+    console.log('🔄 Tasks component initialized');
     this.projectId = Number(this.route.snapshot.paramMap.get('projectId'));
-    this.loadTasks()
+    console.log('💻 Project ID from route:', this.projectId);
+    this.loadTasks();
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    console.log('🔗 Paginator connected:', this.paginator);
+    
+    // Force reconnect paginator after view init
+    setTimeout(() => {
+      if (this.paginator && this.dataSource.data.length > 0) {
+        this.dataSource.paginator = this.paginator;
+        console.log('🔗 Paginator re-connected after timeout');
+      }
+    }, 0);
+  }
+
+  ngOnDestroy(): void {
+    console.log('🔄 Tasks component destroyed');
+  }
+
+  // Force refresh method
+  forceRefresh(): void {
+    console.log('🔄 Force refresh triggered');
+    this.error = null;
+    this.tasks = [];
+    this.dataSource.data = [];
+    this.loadTasks();
   }
 
   //TODO
@@ -127,9 +158,73 @@ export class Tasks implements OnInit {
   archiveTask(taskID: number){}
 
   loadTasks(){
-    return this.taskService.getTasksByProject(this.projectId).subscribe((data: any)=>{
-      this.tasks = data;
-    })
+    console.log('🔄 loadTasks() called for project:', this.projectId);
+    this.isLoadingTasks = true;
+    this.error = null;
+    
+    this.taskService.getTasksByProject(this.projectId).subscribe({
+      next: (data: any) => {
+        console.log('📥 Raw tasks data received:', data);
+        console.log('📊 Data type:', typeof data);
+        console.log('📊 Is Array:', Array.isArray(data));
+        
+        const activeTasks = Array.isArray(data) ? data.filter((task: TaskDTO) => !task.archived) : [];
+        console.log('✅ Active tasks after filter:', activeTasks);
+        console.log('✅ Active tasks count:', activeTasks.length);
+        
+        this.tasks = activeTasks;
+        this.dataSource.data = activeTasks;
+        
+        // Paginator nach Datenaktualisierung neu setzen
+        if (this.paginator) {
+          this.dataSource.paginator = this.paginator;
+          console.log('✅ Paginator re-connected');
+        }
+        
+        this.isLoadingTasks = false;
+        this.cdr.markForCheck();
+        
+        console.log('✅ Final state - DataSource.data.length:', this.dataSource.data.length);
+        console.log('✅ Final state - isLoadingTasks:', this.isLoadingTasks);
+        console.log('✅ Final state - error:', this.error);
+        console.log('✅ Final state - Should show table?', !this.isLoadingTasks && this.dataSource.data.length > 0);
+      },
+      error: (error) => {
+        console.error('❌ Error loading tasks:', error);
+        console.error('Error status:', error.status);
+        console.error('Error message:', error.message);
+        
+        if(error.status === 401 || error.status === 403){
+          console.log('🔄 Auth error, redirecting to login');
+          alert('Session expired. Please login again.');
+          localStorage.removeItem('token');
+          this.router.navigateByUrl('/login');
+        } else if (error.status === 0) {
+          console.log('❌ No internet connection or CORS issue');
+          this.error = 'Network error. Please check your connection and try again.';
+        } else {
+          console.log('❌ API Error:', error);
+          this.error = `Failed to load tasks (Error: ${error.status || 'Unknown'})`;
+        }
+        this.isLoadingTasks = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+  
+  // Helper method for debugging
+  getDebugInfo(): any {
+    const token = localStorage.getItem('token');
+    return {
+      hasToken: !!token,
+      projectId: this.projectId,
+      tasksCount: this.tasks.length,
+      dataSourceCount: this.dataSource.data.length,
+      isLoading: this.isLoadingTasks,
+      error: this.error,
+      showTable: !this.isLoadingTasks && this.dataSource.data.length > 0,
+      hasPaginator: !!this.paginator
+    };
   }
 
 }
