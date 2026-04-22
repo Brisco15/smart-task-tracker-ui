@@ -1,1 +1,40 @@
-<p>create-task-dialog works!</p>
+<h2 mat-dialog-title style="text-align: center; font-size: medium;padding-top: 10px;">Create a new task</h2>
+
+<form [formGroup]="form" style="padding: 16px">
+  <mat-form-field appearance="fill" style="width: 100%;">
+    <mat-label>Title</mat-label>
+    <input matInput formControlName="title" maxlength="50">
+  </mat-form-field>
+
+  <mat-form-field appearance="fill" style="width: 100%;">
+    <mat-label>Description</mat-label>
+    <input matInput type="text" formControlName="description" maxlength="500">
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Priority</mat-label>
+    <mat-select formControlName="priorityID" required>
+        <mat-option *ngFor="let priority of priorities" [value]="priority.priorityID">
+            {{priority.priorityName}}
+        </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Assign to</mat-label>
+    <mat-select formControlName="assignedTo"  [disabled]="isLoadingUsers" multiple required>
+        <mat-option *ngIf="isLoadingUsers" disabled>
+            Loading users...
+        </mat-option>
+        <mat-option *ngFor="let user of users" [value]="user.userID">
+            {{user.userName}} ({{user.email}})
+        </mat-option>
+    </mat-select>
+    <mat-hint *ngIf="isLoadingUsers">Loading available users...</mat-hint>
+  </mat-form-field>
+
+ <div style="text-align: right; margin-top: 16px; display: flex; justify-content: space-around;">
+    <button mat-raised-button style="background-color: rgb(228, 21, 21);" (click)="cancel()">Cancel</button>
+    <button mat-raised-button style="background-color: rgb(21, 228, 31);" type="submit" (click)="submit()" [disabled]="form.invalid">Create</button>
+  </div>
+</form>

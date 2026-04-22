@@ -12,6 +12,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Auth } from '../../services/auth';
 import { TaskService } from '../../services/task-service';
 import { Projects } from '../projects/projects';
+import { CreateTaskDialog } from '../create-task-dialog/create-task-dialog';
 
 
 
@@ -50,7 +51,19 @@ export class Tasks implements OnInit {
   }
 
   //TODO
-  createTask(){}
+  createTask(){
+    const dialogRef = this.dialog.open(CreateTaskDialog, {
+      data: {projectID: this.projectId},
+      width: '400px'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if(result){
+        this.loadTasks();
+        this.isLoadingTasks = false;
+      }
+    })
+  }
 
   editTask(taskID: number){}
 
@@ -65,4 +78,4 @@ export class Tasks implements OnInit {
   }
 
 }
-///////////////////////////////
+
