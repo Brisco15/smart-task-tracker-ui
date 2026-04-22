@@ -16,34 +16,33 @@ export class TaskService {
       'Pragma': 'no-cache',
       'Expires': '0'
     });
-    return this.http.get(`${this.apiUrl}/taskItems`, {headers})
+    return this.http.get(`${this.apiUrl}/tasks`, {headers})  // ✅ Geändert von /taskItems zu /tasks
   }
 
   getTask(taskID: number){
-    return this.http.get(`${this.apiUrl}/taskItems/${taskID}`)
+    return this.http.get(`${this.apiUrl}/tasks/${taskID}`)  // ✅ Geändert
   }
 
   getTasksByProject(projectId: number) {
-  return this.http.get(`${this.apiUrl}/tasks/project/${projectId}`);
+    return this.http.get(`${this.apiUrl}/tasks/project/${projectId}`);  // ✅ Bereits korrekt
   }
 
   deleteTask(taskID: number){
-    return this.http.delete(`${this.apiUrl}/taskItems/${taskID}`)
+    return this.http.delete(`${this.apiUrl}/tasks/${taskID}`)  // ✅ Geändert
   }
 
   updateTask(taskID: number, taskData: any){
-    return this.http.put(`${this.apiUrl}/taskItems/${taskID}`, taskData)
+    return this.http.put(`${this.apiUrl}/tasks/${taskID}`, taskData)  // ✅ Geändert
   }
 
   archiveTask(taskID: number){
-    return this.http.patch(`${this.apiUrl}/taskItems/${taskID}/archive`,{})
+    return this.http.patch(`${this.apiUrl}/tasks/${taskID}/archive`,{})  // ✅ Geändert
   }
 
   postTask(newTask: any){
-    return this.http.post(`${this.apiUrl}/taskItems`, newTask)
+    return this.http.post(`${this.apiUrl}/tasks`, newTask)  // ✅ Geändert von /taskItems zu /tasks
     .pipe(tap(()=>console.log('A new task was created'))
     )
-
   }
 }
 

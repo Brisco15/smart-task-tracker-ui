@@ -53,13 +53,13 @@ export const routes: Routes = [
                 canActivate: [roleGuardGuard],
                 data: { roles: ['Admin', 'Developer', 'Manager']}
             },
-            {
-                path: 'tasks',
-                component: Tasks,
-                title: 'Tasks',
-                canActivate: [roleGuardGuard],
-                data: { roles: ['Admin', 'Developer', 'Manager']}
-            },
+            // {
+            //     path: 'tasks',
+            //     component: Tasks,
+            //     title: 'Tasks',
+            //     canActivate: [roleGuardGuard],
+            //     data: { roles: ['Admin', 'Developer', 'Manager']}
+            // },
             {
                 path: 'projects/:projectId/tasks',
                 component: Tasks,

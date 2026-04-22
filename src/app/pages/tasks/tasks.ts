@@ -52,6 +52,15 @@ export class Tasks implements OnInit {
 
   //TODO
   createTask(){
+
+    const userRole = this.authService.getUserRole();
+    console.log('current Role:', userRole);
+    
+    if(userRole !== 'Manager'){
+      alert('You do not have permission to perform this action');
+      return;
+    }
+
     const dialogRef = this.dialog.open(CreateTaskDialog, {
       data: {projectID: this.projectId},
       width: '400px'
@@ -59,8 +68,54 @@ export class Tasks implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if(result){
-        this.loadTasks();
-        this.isLoadingTasks = false;
+        const taskExists = this.tasks.some(t => t.title === result.title);
+        if(taskExists){
+          alert('There is already a task with this title. Please try another title.');
+          return;
+        }
+
+        const currentUserID = this.authService.getCurrentUserID();
+
+        const newTask = {
+          title: result.title,
+          description: result.description,
+          projectID: this.projectId,
+          
+          priorityID: result.priorityID,
+          assignedTo: result.assignedTo,
+          createdBy: currentUserID,
+          createdAt: new Date,
+          archived: false,
+        };
+        console.log('📤 Sending task to backend:', newTask);
+
+        this.taskService.postTask(newTask).subscribe({
+          next: (response: any)=> {
+            console.log('✅ Task created successfully:', response);
+            alert(' Task successfully created');
+            this.loadTasks(); 
+            this.isLoadingTasks = false;
+            this.cdr.markForCheck();
+          },
+          error: (error: any) => {
+            console.error('❌ Error creating task:', error);
+            console.error('Error status:', error.status);
+            console.error('Error response:', error.error);
+  
+            if (error.status === 400) {
+              alert(`Failed to create task: ${error.error?.message || error.error || 'Bad Request'}`);
+            } else if (error.status === 409) {
+              alert('A task with this title already exists');
+            } else if (error.status === 403) {
+              alert('You do not have permission to create a task');
+            } else {
+              alert('Failed to create a task. Please try again.');
+            }
+            this.isLoadingTasks = false;
+            this.cdr.markForCheck();
+          }
+        })
+         
       }
     })
   }

@@ -22,7 +22,7 @@
 
   <mat-form-field>
     <mat-label>Assign to</mat-label>
-    <mat-select formControlName="assignedTo"  [disabled]="isLoadingUsers" multiple required>
+    <mat-select formControlName="assignedTo" required>
         <mat-option *ngIf="isLoadingUsers" disabled>
             Loading users...
         </mat-option>
