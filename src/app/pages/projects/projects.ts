@@ -235,6 +235,11 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
   }
 
   editProject(projectID: number) {
+    const userRole = this.authService.getUserRole();
+    if(userRole !== 'Manager'){
+      alert('You do not have permission to perform this action');
+      return;
+    }
     const projectToEdit = this.projects.find(p => p.projectID === projectID);
     if(!projectToEdit){
       alert('Project not found');

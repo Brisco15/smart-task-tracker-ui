@@ -100,7 +100,7 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  //TODO
+  
   createTask(){
 
     const userRole = this.authService.getUserRole();
@@ -171,7 +171,29 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
 
   editTask(taskID: number){}
 
-  deleteTask(taskID: number){}
+  deleteTask(taskID: number){
+    const userRole = this.authService.getUserRole();
+    if(userRole !== 'Manager'){
+      alert('You do not have permission to perform this action');
+      return;
+    }
+    
+    if (!confirm('Are you sure you want to delete this task?')) return;
+    this.taskService.deleteTask(taskID).subscribe({
+      next: () => {
+        alert('Task deleted successfully');
+        this.loadTasks();
+      },
+      error: (error)=>{
+        console.error('Error deleting task:', error);
+        if(error.status === 403){
+          alert('You do not have permission to perform this action')
+        }else {
+          alert('Failed to delete the task')
+        } 
+      }
+    })
+  }
 
   archiveTask(taskID: number){}
 
