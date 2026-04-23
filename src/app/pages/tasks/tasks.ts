@@ -27,12 +27,13 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
   tasks: TaskDTO[] = [];
   error: string | null = null;
   dataSource = new MatTableDataSource<TaskDTO>([]);
-  displayedColumns: string[] = ['taskID','title','description','assignedTo','projectID','statusID','priorityID','actions'];
+  displayedColumns: string[] = ['taskID','title','description','assignedTo','statusID','priorityID','actions'];
   http = inject(HttpClient);
   router = inject(Router);
   isLoadingTasks = false;
   showDebugPanel = false;
   projectId!: number;
+  currentProjectName: string = '';
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   
 
@@ -78,7 +79,25 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
     this.error = null;
     this.tasks = [];
     this.dataSource.data = [];
+    this.currentProjectName = '';
     this.loadTasks();
+  }
+
+  // Fallback method to load project name separately
+  private loadProjectName(): void {
+    console.log('🔄 Loading project name for ID:', this.projectId);
+    this.projectService.getProject(this.projectId).subscribe({
+      next: (project: any) => {
+        this.currentProjectName = project.projectName || 'Unknown Project';
+        console.log('✅ Project name loaded:', this.currentProjectName);
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        console.error('❌ Error loading project name:', error);
+        this.currentProjectName = `Project ${this.projectId}`;
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   //TODO
@@ -111,7 +130,6 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
           title: result.title,
           description: result.description,
           projectID: this.projectId,
-          
           priorityID: result.priorityID,
           assignedTo: result.assignedTo,
           createdBy: currentUserID,
@@ -175,6 +193,15 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
         this.tasks = activeTasks;
         this.dataSource.data = activeTasks;
         
+        // Extract project name from first task if available
+        if (activeTasks.length > 0 && activeTasks[0].project) {
+          this.currentProjectName = activeTasks[0].project.projectName;
+          console.log('✅ Project name extracted:', this.currentProjectName);
+        } else {
+          // Fallback: load project name separately
+          this.loadProjectName();
+        }
+        
         // Paginator nach Datenaktualisierung neu setzen
         if (this.paginator) {
           this.dataSource.paginator = this.paginator;
@@ -218,6 +245,7 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
     return {
       hasToken: !!token,
       projectId: this.projectId,
+      currentProjectName: this.currentProjectName,
       tasksCount: this.tasks.length,
       dataSourceCount: this.dataSource.data.length,
       isLoading: this.isLoadingTasks,

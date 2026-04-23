@@ -78,7 +78,7 @@ table {
   table-layout: fixed; /* Force fixed layout for consistent column widths */
 }
 
-/* Column width controls for tasks table */
+/* Column width controls */
 .mat-mdc-table .mat-mdc-header-cell:nth-child(1), 
 .mat-mdc-table .mat-mdc-cell:nth-child(1) { /* Task ID */
   width: 60px;
@@ -108,28 +108,22 @@ table {
 }
 
 .mat-mdc-table .mat-mdc-header-cell:nth-child(5), 
-.mat-mdc-table .mat-mdc-cell:nth-child(5) { /* Project ID */
-  width: 80px;
-  min-width: 80px;
-  max-width: 80px;
+.mat-mdc-table .mat-mdc-cell:nth-child(5) { /* Status */
+  width: 100px;
+  min-width: 100px;
+  max-width: 100px;
 }
 
 .mat-mdc-table .mat-mdc-header-cell:nth-child(6), 
-.mat-mdc-table .mat-mdc-cell:nth-child(6) { /* Status */
-  width: 80px;
-  min-width: 80px;
-  max-width: 80px;
+.mat-mdc-table .mat-mdc-cell:nth-child(6) { /* Priority */
+  width: 100px;
+  min-width: 100px;
+  max-width: 100px;
+  text-align: center;
 }
 
 .mat-mdc-table .mat-mdc-header-cell:nth-child(7), 
-.mat-mdc-table .mat-mdc-cell:nth-child(7) { /* Priority */
-  width: 80px;
-  min-width: 80px;
-  max-width: 80px;
-}
-
-.mat-mdc-table .mat-mdc-header-cell:nth-child(8), 
-.mat-mdc-table .mat-mdc-cell:nth-child(8) { /* Actions */
+.mat-mdc-table .mat-mdc-cell:nth-child(7) { /* Actions */
   width: 280px;
   min-width: 280px;
   max-width: 280px;
@@ -173,21 +167,80 @@ table {
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
+/* Priority styling */
+.priority-low {
+  background-color: #e3f2fd !important;
+  color: #1565c0;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-align: center;
+  border: 1px solid #bbdefb;
+}
+
+.priority-medium {
+  background-color: #fff8e1 !important;
+  color: #f57c00;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-align: center;
+  border: 1px solid #ffecb3;
+}
+
+.priority-high {
+  background-color: #fce4ec !important;
+  color: #ad1457;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-align: center;
+  border: 1px solid #f8bbd9;
+}
+
 .mat-mdc-header-row {
   background-color: #cec3c3;
 }
 
-.action-buttons button {
-  margin: 0;
-  min-width: 60px;
+.mat-mdc-row:hover {
+  background-color: #f0f0f0;
 }
 
+/* Loading and error state styling */
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #666;
+}
+
+.error-state {
+  padding: 20px;
+  background-color: #ffebee;
+  border: 1px solid #e57373;
+  border-radius: 4px;
+  color: #c62828;
+  margin: 10px 0;
+}
+
+.no-data-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+  font-size: 14px;
+}
+
+/* Clean up table container */
 .table-container {
   max-height: 600px;
   overflow: auto;
   position: relative;
   margin-left: 10px;
   margin-right: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 table {
@@ -200,10 +253,7 @@ table {
 /* Material table improvements */
 .mat-mdc-table {
   width: 100%;
-}
-
-.mat-mdc-header-row {
-  background-color: #cec3c3;
+  table-layout: fixed;
 }
 
 .mat-mdc-row:hover {
