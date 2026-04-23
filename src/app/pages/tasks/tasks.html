@@ -68,7 +68,15 @@
         <!-- status Column -->
         <ng-container matColumnDef="statusID">
             <th mat-header-cell *matHeaderCellDef>Status</th>
-            <td mat-cell *matCellDef="let task">{{task.status.statusName}}</td>
+            <td mat-cell *matCellDef="let task">
+                <span [ngClass]="{
+                    'status-not-started': task.status?.statusName?.toLowerCase() === 'not started',
+                    'status-in-progress': task.status?.statusName?.toLowerCase() === 'in progress',
+                    'status-completed': task.status?.statusName?.toLowerCase() === 'completed'
+                }">
+                    {{task.status.statusName}}
+                </span>
+            </td>
         </ng-container>
 
         <!-- priority Column -->
