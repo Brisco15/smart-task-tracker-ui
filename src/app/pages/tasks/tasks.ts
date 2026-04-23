@@ -177,7 +177,7 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
       alert('You do not have permission to perform this action');
       return;
     }
-    
+
     if (!confirm('Are you sure you want to delete this task?')) return;
     this.taskService.deleteTask(taskID).subscribe({
       next: () => {
@@ -195,7 +195,36 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
     })
   }
 
-  archiveTask(taskID: number){}
+  archiveTask(taskID: number){
+
+    const userRole = this.authService.getUserRole();
+    if(userRole === 'Developer'){
+      alert('You do not have permission to perform this action')
+      
+      return;
+    }
+
+    if(!confirm('Are you sure you want to archive this task?'))
+     
+      return;
+
+    this.taskService.archiveTask(taskID).subscribe({
+      next: (response: any)=>{
+        console.log('✅ Task archived successfully:', response);
+        alert('Task archived successfully');
+        this.loadTasks();
+      },
+      error: (error)=> {
+        console.error('Error archiving task:', error);
+        if(error.status === 403){
+          alert('You do not have permission to perform this action')
+        }else{
+          alert('Failed to archive task')
+        }
+        
+      }
+    })
+  }
 
   loadTasks(){
     console.log('🔄 loadTasks() called for project:', this.projectId);

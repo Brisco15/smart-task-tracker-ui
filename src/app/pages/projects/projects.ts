@@ -319,6 +319,13 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
   }
 
   archiveProject(projectID: number){
+    
+    const userRole = this.authService.getUserRole();
+    if(userRole === 'Developer'){
+      alert('You do not have permission to perform this action');
+      return;
+    }
+
     if(!confirm('Are you sure you want to archive this project?')) return;
     
     console.log('Archiving project:', projectID);
