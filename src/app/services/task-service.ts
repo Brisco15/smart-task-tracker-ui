@@ -35,6 +35,10 @@ export class TaskService {
     return this.http.put(`${this.apiUrl}/tasks/${taskID}`, taskData)  // ✅ Geändert
   }
 
+  updateTaskByProject(projectId: number,taskID: number, taskData: any){
+    return this.http.put(`${this.apiUrl}/tasks/project/${projectId}/${taskID}`, taskData)  // ✅ Geändert
+  }
+
   archiveTask(taskID: number){
     return this.http.patch(`${this.apiUrl}/tasks/${taskID}/archive`,{})  // ✅ Geändert
   }
