@@ -33,7 +33,7 @@
     <mat-hint *ngIf="isLoadingUsers">Loading available users...</mat-hint>
   </mat-form-field>
 
- <div style="text-align: right; margin-top: 16px; display: flex; justify-content: space-around;">
+  <div style="text-align: right; margin-top: 16px; display: flex; justify-content: space-around;">
     <button mat-raised-button style="background-color: rgb(228, 21, 21);" (click)="cancel()">Cancel</button>
     <button mat-raised-button style="background-color: rgb(21, 228, 31);" type="submit" (click)="submit()" [disabled]="form.invalid">Create</button>
   </div>
