@@ -14,6 +14,7 @@ import { Auth } from '../../services/auth';
 import { TaskService } from '../../services/task-service';
 import { Projects } from '../projects/projects';
 import { CreateTaskDialog } from '../create-task-dialog/create-task-dialog';
+import { EditTaskDialog } from '../edit-task-dialog/edit-task-dialog';
 
 
 
@@ -169,7 +170,63 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
     })
   }
 
-  editTask(taskID: number){}
+  editTask(taskID: number){
+    const userRole = this.authService.getUserRole();
+    if(userRole === 'Admin'){
+      alert('You do not have permission to perform this action');
+      return;
+    }
+
+    const taskToEdit = this.tasks.find(t => t.taskID === taskID);
+    if(!taskToEdit){
+      alert('Task not found');
+      return;
+    }
+
+    const dialogRef = this.dialog.open(EditTaskDialog, {
+      width: '600px',
+      data: {task: taskToEdit}
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if(result){
+        console.log('Dialog result:', result);
+
+        const updatedTask = {
+          title: result.title,
+          description: result.description,
+          assignedTo: result.assignedTo,
+          statusID: result.statusID,
+          priorityID: result.priorityID
+        };
+
+        console.log('📤 Sending update to backend:', updatedTask);
+        this.taskService.updateTaskByProject(this.projectId, taskID, updatedTask).subscribe({
+          next: () => {
+            console.log('✅ Task updated successfully');
+            alert('Task successfully updated')
+            this.loadTasks()
+          },
+          error: (error) => {
+            console.error('❌ Error updating task:', error);
+            console.error('Error status:', error.status);
+            console.error('Error details:', error.error);
+          
+            if (error.status === 403) {
+              alert('You do not have permission to edit this task');
+            } else if(error.status === 409){
+              alert('A task with this title already exists');
+            } else if (error.status === 500){
+              alert('Server error. Please check the backend logs');
+            } else {
+              alert('Failed to update task');
+            }
+          }
+        })
+        
+      }
+    })
+  }
 
   deleteTask(taskID: number){
     const userRole = this.authService.getUserRole();

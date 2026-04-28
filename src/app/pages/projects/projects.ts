@@ -247,7 +247,7 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const dialogRef = this.dialog.open(EditProjectDialog, {
-      height: '500px',
+      
       width: '600px',
       data: { project: projectToEdit }
     });
@@ -275,7 +275,6 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
           next: () => {
             console.log('✅ Project updated successfully');
             alert('Project updated successfully');
-
             this.loadProjects();
           },
           error: (error) => {
