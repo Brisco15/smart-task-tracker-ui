@@ -15,12 +15,13 @@ import { TaskService } from '../../services/task-service';
 import { Projects } from '../projects/projects';
 import { CreateTaskDialog } from '../create-task-dialog/create-task-dialog';
 import { EditTaskDialog } from '../edit-task-dialog/edit-task-dialog';
+import { MatIconModule, MatIcon } from '@angular/material/icon';
 
 
 
 @Component({
   selector: 'app-tasks',
-  imports: [CommonModule, MatPaginator, MatPaginatorModule, MatTableModule, MatButtonModule, MatCheckbox, MatDialogModule],
+  imports: [CommonModule,MatIconModule, MatPaginator, MatPaginatorModule, MatTableModule, MatButtonModule, MatCheckbox, MatDialogModule],
   templateUrl: './tasks.html',
   styleUrl: './tasks.css',
 })
@@ -345,6 +346,14 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  start(taskID: number){
+
+  }
+
+  stop(taskID: number){
+
   }
   
   // Helper method for debugging

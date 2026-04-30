@@ -57,13 +57,11 @@
             </td>
         </ng-container>
 
-         <!-- startDate Column -->
+        <!-- Assigned to Column -->
         <ng-container matColumnDef="assignedTo">
-            <th mat-header-cell *matHeaderCellDef>Assigned To</th>
+            <th mat-header-cell *matHeaderCellDef>Assigned to</th>
             <td mat-cell *matCellDef="let task">{{task.assignedUser.userName}}</td>
         </ng-container>
-
-         
 
         <!-- status Column -->
         <ng-container matColumnDef="statusID">
@@ -107,6 +105,14 @@
               <mat-checkbox (change)="archiveTask(task.taskID)" style="margin-left: 8px;">
                Archive
               </mat-checkbox>
+              <button matButton  (click)="start(task.taskID)" style="margin-left: 8px; background-color: #4CAF50; color: white;">
+                <mat-icon>play_arrow</mat-icon>
+                Start
+              </button>
+              <button matButton (click)="stop(task.taskID)" style="margin-left: 8px; background-color: #333 ; color: white">
+                <mat-icon>stop</mat-icon>
+                Stop
+            </button>
            </div>
          </td>
         </ng-container>
