@@ -94,8 +94,15 @@
         <ng-container matColumnDef="timeSpent">
             <th mat-header-cell *matHeaderCellDef>Time</th>
             <td mat-cell *matCellDef="let task"> 
-                <mat-icon>clock</mat-icon>
-               {{ formatTime(taskTimes[task.taskID]) }}
+                
+                <span *ngIf="isRunning(task.taskID); else staticTime">
+                    <mat-icon>⏲ </mat-icon> Running...
+                </span>
+
+                <ng-template #staticTime>
+                    <mat-icon>schedule </mat-icon> {{ formatTime(taskTimes[task.taskID]) }}
+
+                </ng-template>  
             </td>
         </ng-container>
 

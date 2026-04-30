@@ -35,6 +35,7 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
   projectId!: number;
   currentProjectName: string = '';
   taskTimes: { [taskID: number]: number} = {};
+  runningTasks: { [taskID: number]: boolean} = {};
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   
 
@@ -349,32 +350,83 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  start(taskID: number){
-    this.timeTracking.startTimeTracking(taskID).subscribe();
+  isRunning(taskID: number){
+    return this.runningTasks[taskID] === true;
+  }
+
+  start(taskID: number): void{
+    console.log('Starting time tracking:', taskID);
+    this.timeTracking.startTimeTracking(taskID).subscribe({
+      next: (response)=>{
+        console.log('time tracking started:', response);
+        this.runningTasks[taskID] = true;
+        this.cdr.detectChanges();
+        alert('time tracking started');
+        
+      },
+      error: (error) => {
+        console.error('❌ Error starting time tracking:', error);
+        if (error.status === 400) {
+          alert('You already have an active time tracking!');
+        } else if (error.status === 403) {
+          alert('You do not have permission to track time!');
+        } else {
+          alert('Failed to start time tracking');
+        }
+      }
+    });
 
   }
 
-  stop(taskID: number){
-    this.timeTracking.stopTimeTracking(taskID).subscribe();
+  stop(taskID: number): void{
+    console.log('stopping time tracking for task:', taskID);
+    
+    this.timeTracking.stopTimeTracking(taskID).subscribe({
+      next: (response)=>{
+        console.log('Time tracking stopped:', response);
+        this.runningTasks[taskID] = false;
+        this.loadTaskTimes();
+        this.cdr.detectChanges();
+        alert('Time tracking stopped');
+      },
+      error: (error) => {
+        console.error('❌ Error stopping time tracking:', error);
+        if (error.status === 404) {
+          alert('No active time tracking found for this task!');
+        } else if (error.status === 403) {
+          alert('You do not have permission to stop time tracking!');
+        } else {
+          alert('Failed to stop time tracking');
+        }
+      }
+    });
+    
   }
+
 
   loadTaskTimes(){
+    console.log('⏱️ Loading task times for project:', this.projectId);
     this.timeTracking.getTimeTrackingByProject(this.projectId).subscribe({
       next: (data)=>{
-      data.forEach( item =>{
+        console.log('📊 Task times received:', data);
+        data.forEach( item =>{
         this.taskTimes[item.taskID] = item.totalDuration * 60;
-
-        console.log('time track:', this.taskTimes)
+        console.log('✅ Task times loaded:', this.taskTimes);
+        this.cdr.detectChanges();
       })
     },
-    error: (error)=> {
-      console.error('Error loading task times:', error);  
-    }
+   error: (error) => {
+     console.error('❌ Error loading task times:', error);
+     // Ignore error 404 in case there is no time tracking
+     if (error.status !== 404) {
+       console.warn('⚠️ Failed to load task times, but continuing...');
+     }
+   }
   });
   }
 
   formatTime(seconds: number): string {
-    if(!seconds) {
+    if(!seconds || seconds === 0) {
       return '0m';
     }
 
