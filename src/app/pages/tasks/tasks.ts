@@ -1,10 +1,9 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit, AfterViewInit, ViewChild, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit, AfterViewInit, ViewChild, OnDestroy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { CommonModule } from '@angular/common';
-import { ProjectDTO } from '../../interfaces/ProjectDTO';
 import { TaskDTO } from '../../interfaces/TaskDTO';
 import { HttpClient } from '@angular/common/http';
 import { MatCheckbox } from '@angular/material/checkbox';
@@ -12,11 +11,10 @@ import { ProjectService } from '../../services/project-service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Auth } from '../../services/auth';
 import { TaskService } from '../../services/task-service';
-import { Projects } from '../projects/projects';
 import { CreateTaskDialog } from '../create-task-dialog/create-task-dialog';
 import { EditTaskDialog } from '../edit-task-dialog/edit-task-dialog';
-import { MatIconModule, MatIcon } from '@angular/material/icon';
-
+import { MatIconModule } from '@angular/material/icon';
+import { TimeTracking } from '../../services/time-tracking';
 
 
 @Component({
@@ -29,13 +27,14 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
   tasks: TaskDTO[] = [];
   error: string | null = null;
   dataSource = new MatTableDataSource<TaskDTO>([]);
-  displayedColumns: string[] = ['taskID','title','description','assignedTo','statusID','priorityID','actions'];
+  displayedColumns: string[] = ['taskID','title','description','assignedTo','statusID','priorityID','timeSpent','actions'];
   http = inject(HttpClient);
   router = inject(Router);
   isLoadingTasks = false;
   showDebugPanel = false;
   projectId!: number;
   currentProjectName: string = '';
+  taskTimes: { [taskID: number]: number} = {};
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   
 
@@ -45,10 +44,9 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
     private authService: Auth,
     private cdr: ChangeDetectorRef,
     private projectService: ProjectService,
-    private route: ActivatedRoute
-  ){
-
-  }
+    private route: ActivatedRoute,
+    private timeTracking: TimeTracking
+  ){}
   
 
   ngOnInit(): void {
@@ -56,6 +54,9 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
     this.projectId = Number(this.route.snapshot.paramMap.get('projectId'));
     console.log('💻 Project ID from route:', this.projectId);
     this.loadTasks();
+    this.loadTaskTimes();
+    console.log(' Time track:', this.loadTaskTimes);
+    
   }
 
   ngAfterViewInit(): void {
@@ -349,11 +350,38 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
   }
 
   start(taskID: number){
+    this.timeTracking.startTimeTracking(taskID).subscribe();
 
   }
 
   stop(taskID: number){
+    this.timeTracking.stopTimeTracking(taskID).subscribe();
+  }
 
+  loadTaskTimes(){
+    this.timeTracking.getTimeTrackingByProject(this.projectId).subscribe({
+      next: (data)=>{
+      data.forEach( item =>{
+        this.taskTimes[item.taskID] = item.totalDuration * 60;
+
+        console.log('time track:', this.taskTimes)
+      })
+    },
+    error: (error)=> {
+      console.error('Error loading task times:', error);  
+    }
+  });
+  }
+
+  formatTime(seconds: number): string {
+    if(!seconds) {
+      return '0m';
+    }
+
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+
+    return `${h > 0 ? h + 'h ' : ''}${m}m`;
   }
   
   // Helper method for debugging
