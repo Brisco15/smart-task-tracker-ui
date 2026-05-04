@@ -29,10 +29,31 @@
     <button mat-button color="primary" (click)="loadTasks()">Retry</button>
 </div>
 
-<h2 *ngIf="currentProjectName" style="margin-left: 15px;">Tasks for: {{currentProjectName}}</h2>
-<h3 style="margin-left: 15px;">
-  Total Time: {{ totalProjectTime() || '0m' }} minutes
-</h3>
+<!-- Project Header Section -->
+<div class="project-header-card" *ngIf="currentProjectName">
+  <mat-card class="header-card">
+    <mat-card-header>
+      <div mat-card-avatar class="project-avatar">
+        <mat-icon>folder_open</mat-icon>
+      </div>
+      <mat-card-title class="project-title">{{ currentProjectName }}</mat-card-title>
+      <mat-card-subtitle>Project Tasks Overview</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="time-stats">
+        <div class="time-stat-item">
+          <mat-icon class="time-icon">schedule</mat-icon>
+          <div class="time-details">
+            <span class="time-label">Total Project Time</span>
+            <span class="time-value">{{ formatTime(totalProjectTime() * 60) }}</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
 <!-- Tasks Table -->
 <div class="table-container" *ngIf="!isLoadingTasks && dataSource.data.length > 0">
     <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">

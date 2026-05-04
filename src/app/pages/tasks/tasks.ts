@@ -14,13 +14,14 @@ import { TaskService } from '../../services/task-service';
 import { CreateTaskDialog } from '../create-task-dialog/create-task-dialog';
 import { EditTaskDialog } from '../edit-task-dialog/edit-task-dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
 import { TimeTracking } from '../../services/time-tracking';
 import { signal } from '@angular/core';
 
 
 @Component({
   selector: 'app-tasks',
-  imports: [CommonModule,MatIconModule, MatPaginator, MatPaginatorModule, MatTableModule, MatButtonModule, MatCheckbox, MatDialogModule],
+  imports: [CommonModule,MatIconModule, MatCardModule, MatPaginator, MatPaginatorModule, MatTableModule, MatButtonModule, MatCheckbox, MatDialogModule],
   templateUrl: './tasks.html',
   styleUrl: './tasks.css',
 })
@@ -455,7 +456,7 @@ loadTaskTimes(){
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
 
-    return `${h > 0 ? h + 'h ' : ''}${m}m`;
+    return `${h > 0 ? h + 'h ' : ''}${m} min(s)`;
   }
   
   // Helper method for debugging
