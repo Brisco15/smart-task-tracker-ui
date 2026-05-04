@@ -14,14 +14,15 @@ import { TaskService } from '../../services/task-service';
 import { CreateTaskDialog } from '../create-task-dialog/create-task-dialog';
 import { EditTaskDialog } from '../edit-task-dialog/edit-task-dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
+import { MatCard, MatCardModule } from '@angular/material/card';
 import { TimeTracking } from '../../services/time-tracking';
 import { signal } from '@angular/core';
 
 
+
 @Component({
   selector: 'app-tasks',
-  imports: [CommonModule,MatIconModule, MatCardModule, MatPaginator, MatPaginatorModule, MatTableModule, MatButtonModule, MatCheckbox, MatDialogModule],
+  imports: [CommonModule,MatCardModule ,MatIconModule, MatPaginator, MatPaginatorModule, MatTableModule, MatButtonModule, MatCheckbox, MatDialogModule],
   templateUrl: './tasks.html',
   styleUrl: './tasks.css',
 })
@@ -38,10 +39,12 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
   currentProjectName: string = '';
   taskTimes: { [taskID: number]: number} = {};
   runningTasks: { [taskID: number]: boolean} = {};
-  totalProjectTime = signal(0);
+  
+  // ✅ Normale Variable, kein Signal!
+  totalProjectTime: number = 0;
+  
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   
-
   constructor(
     private taskService: TaskService,
     private dialog: MatDialog,
@@ -51,16 +54,12 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
     private route: ActivatedRoute,
     private timeTracking: TimeTracking
   ){}
-  
 
   ngOnInit(): void {
-   
     this.projectId = Number(this.route.snapshot.paramMap.get('projectId'));
     this.loadTasks();
     this.loadTaskTimes();
     this.loadTotalTimePerProject();
-    
-    
   }
 
   ngAfterViewInit(): void {
@@ -294,7 +293,6 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
     
     this.taskService.getTasksByProject(this.projectId).subscribe({
       next: (data: any) => {
-        
         const activeTasks = Array.isArray(data) ? data.filter((task: TaskDTO) => !task.archived) : [];
         this.tasks = activeTasks;
         this.dataSource.data = activeTasks;
@@ -313,15 +311,16 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
         }
         
         this.isLoadingTasks = false;
-        this.cdr.markForCheck();
+        
+        // ✅ Wrap in setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
+        setTimeout(() => {
+          this.cdr.detectChanges();
+        });
       },
       error: (error) => {
         console.error('❌ Error loading tasks:', error);
-        console.error('Error status:', error.status);
-        console.error('Error message:', error.message);
         
         if(error.status === 401 || error.status === 403){
-          
           alert('Session expired. Please login again.');
           localStorage.removeItem('token');
           this.router.navigateByUrl('/login');
@@ -331,7 +330,7 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
           this.error = `Failed to load tasks (Error: ${error.status || 'Unknown'})`;
         }
         this.isLoadingTasks = false;
-        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       }
     });
   }
@@ -373,19 +372,17 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
 
   // Separate method to stop time tracking for a task
   stop(taskID: number): void{
-    // Check if the current user is assigned to the task before allowing time tracking
-    const currentUserID = this.authService.getCurrentUserID();
-    const assignedTo = this.tasks.find(t => t.taskID === taskID)?.assignedTo;
-
-    if (assignedTo !== currentUserID) {
-      alert('You can only track time for tasks assigned to you!');
-      return;
-    }
     this.timeTracking.stopTimeTracking(taskID).subscribe({
       next: (response)=>{
         this.runningTasks[taskID] = false;
-        this.loadTaskTimes();
-        this.cdr.detectChanges();
+        
+        // ✅ Reload data after stopping
+        setTimeout(() => {
+          this.loadTaskTimes();
+          this.loadTotalTimePerProject();
+          this.cdr.detectChanges();
+        }, 100);
+        
         alert('Time tracking stopped');
       },
       error: (error) => {
@@ -405,19 +402,21 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
 loadTaskTimes(){
   this.timeTracking.getTimeTrackingByProject(this.projectId).subscribe({
     next: (data: any) => {
-      // Validate that we received an array
+      console.log('📊 Task times data received:', data);
+      
       if (Array.isArray(data)) {
-        // Create a new object to hold the updated task times
         const newTaskTimes: { [taskID: number]: number } = {};
-        // Iterate through the received data and populate the new task times object
+        
         data.forEach(item => {
           newTaskTimes[item.taskID] = item.totalDuration * 60;
         });
-        // Update the taskTimes object with the new values
-        this.taskTimes = newTaskTimes; 
+        
+        this.taskTimes = newTaskTimes;
+        console.log('✅ Task times updated:', this.taskTimes);
       } else {
         console.warn('⚠️ Expected array but got:', typeof data);
       }
+      
       this.cdr.detectChanges();
     },
     error: (error) => {
@@ -431,21 +430,22 @@ loadTaskTimes(){
 }
   // Separate method to load total time for the project
   loadTotalTimePerProject(){
-  this.timeTracking.getTotalTime(this.projectId).subscribe({
-    next: (data) => {
-      console.log('📊 Total time data received:', data);
-      this.totalProjectTime.set(data);
-      console.log('⏱️ Total project time set to:', this.totalProjectTime);
-      
-      // ✅ Force Angular Change Detection
-      this.cdr.markForCheck(); 
-      this.cdr.detectChanges();
-    },
-    error: (error) => {
-      console.error('❌ Error loading total time:', error);
-      this.cdr.detectChanges();
-    }
-  });
+    this.timeTracking.getTotalTime(this.projectId).subscribe({
+      next: (data) => {
+        console.log('📊 Total time data received:', data);
+        
+        // ✅ Direkt als Zahl zuweisen
+        this.totalProjectTime = typeof data === 'number' ? data : 0;
+        
+        console.log('⏱️ Total project time set to:', this.totalProjectTime);
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('❌ Error loading total time:', error);
+        this.totalProjectTime = 0;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   // Helper method to format time in seconds to "Xh Ym" format
@@ -456,7 +456,7 @@ loadTaskTimes(){
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
 
-    return `${h > 0 ? h + 'h ' : ''}${m} min(s)`;
+    return `${h > 0 ? h + 'h ' : ''}${m}m`;
   }
   
   // Helper method for debugging
@@ -471,9 +471,9 @@ loadTaskTimes(){
       isLoading: this.isLoadingTasks,
       error: this.error,
       showTable: !this.isLoadingTasks && this.dataSource.data.length > 0,
-      hasPaginator: !!this.paginator
+      hasPaginator: !!this.paginator,
+      totalProjectTime: this.totalProjectTime
     };
   }
-
 }
 
