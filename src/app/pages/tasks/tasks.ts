@@ -15,6 +15,7 @@ import { CreateTaskDialog } from '../create-task-dialog/create-task-dialog';
 import { EditTaskDialog } from '../edit-task-dialog/edit-task-dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { TimeTracking } from '../../services/time-tracking';
+import { signal } from '@angular/core';
 
 
 @Component({
@@ -36,6 +37,7 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
   currentProjectName: string = '';
   taskTimes: { [taskID: number]: number} = {};
   runningTasks: { [taskID: number]: boolean} = {};
+  totalProjectTime = signal(0);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   
 
@@ -51,12 +53,12 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
   
 
   ngOnInit(): void {
-    console.log('🔄 Tasks component initialized');
+   
     this.projectId = Number(this.route.snapshot.paramMap.get('projectId'));
-    console.log('💻 Project ID from route:', this.projectId);
     this.loadTasks();
     this.loadTaskTimes();
-    console.log(' Time track:', this.loadTaskTimes);
+    this.loadTotalTimePerProject();
+    
     
   }
 
@@ -67,19 +69,18 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
     // Force reconnect paginator after view init
     setTimeout(() => {
       if (this.paginator && this.dataSource.data.length > 0) {
-        this.dataSource.paginator = this.paginator;
-        console.log('🔗 Paginator re-connected after timeout');
+        this.dataSource.paginator = this.paginator; 
       }
     }, 0);
   }
 
   ngOnDestroy(): void {
-    console.log('🔄 Tasks component destroyed');
+    
   }
 
   // Force refresh method
   forceRefresh(): void {
-    console.log('🔄 Force refresh triggered');
+    
     this.error = null;
     this.tasks = [];
     this.dataSource.data = [];
@@ -89,15 +90,13 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
 
   // Fallback method to load project name separately
   private loadProjectName(): void {
-    console.log('🔄 Loading project name for ID:', this.projectId);
+    // Call the service to get project details
     this.projectService.getProject(this.projectId).subscribe({
       next: (project: any) => {
         this.currentProjectName = project.projectName || 'Unknown Project';
-        console.log('✅ Project name loaded:', this.currentProjectName);
         this.cdr.markForCheck();
       },
       error: (error) => {
-        console.error('❌ Error loading project name:', error);
         this.currentProjectName = `Project ${this.projectId}`;
         this.cdr.markForCheck();
       }
@@ -106,20 +105,19 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
 
   
   createTask(){
-
+    // Check user role before allowing task creation
     const userRole = this.authService.getUserRole();
-    console.log('current Role:', userRole);
-    
+    // Only Managers are allowed to create tasks
     if(userRole !== 'Manager'){
       alert('You do not have permission to perform this action');
       return;
     }
-
+    // Open the create task dialog
     const dialogRef = this.dialog.open(CreateTaskDialog, {
       data: {projectID: this.projectId},
       width: '400px'
     });
-
+    // Handle the dialog close event
     dialogRef.afterClosed().subscribe(result => {
       if(result){
         const taskExists = this.tasks.some(t => t.title === result.title);
@@ -127,9 +125,9 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
           alert('There is already a task with this title. Please try another title.');
           return;
         }
-
+        // Get the current user ID for the createdBy field
         const currentUserID = this.authService.getCurrentUserID();
-
+        // Create a new task object based on the dialog result
         const newTask = {
           title: result.title,
           description: result.description,
@@ -140,11 +138,11 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
           createdAt: new Date,
           archived: false,
         };
-        console.log('📤 Sending task to backend:', newTask);
-
+        
+        // Call the service to create the task
         this.taskService.postTask(newTask).subscribe({
           next: (response: any)=> {
-            console.log('✅ Task created successfully:', response);
+            
             alert(' Task successfully created');
             this.loadTasks(); 
             this.isLoadingTasks = false;
@@ -173,6 +171,7 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
     })
   }
 
+  // Method to edit a task
   editTask(taskID: number){
     const userRole = this.authService.getUserRole();
     if(userRole === 'Admin'){
@@ -180,21 +179,23 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    // Find the task to edit
     const taskToEdit = this.tasks.find(t => t.taskID === taskID);
     if(!taskToEdit){
       alert('Task not found');
       return;
     }
 
+    // Open the edit dialog with the task data
     const dialogRef = this.dialog.open(EditTaskDialog, {
       width: '600px',
       data: {task: taskToEdit}
     });
 
+    // Handle the dialog close event
     dialogRef.afterClosed().subscribe(result => {
       if(result){
-        console.log('Dialog result:', result);
-
+        
         const updatedTask = {
           title: result.title,
           description: result.description,
@@ -203,10 +204,8 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
           priorityID: result.priorityID
         };
 
-        console.log('📤 Sending update to backend:', updatedTask);
         this.taskService.updateTaskByProject(this.projectId, taskID, updatedTask).subscribe({
           next: () => {
-            console.log('✅ Task updated successfully');
             alert('Task successfully updated')
             this.loadTasks()
           },
@@ -231,6 +230,7 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
     })
   }
 
+  // Method to delete a task
   deleteTask(taskID: number){
     const userRole = this.authService.getUserRole();
     if(userRole !== 'Manager'){
@@ -285,29 +285,22 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
       }
     })
   }
-
+  // Method to load tasks for the current project
   loadTasks(){
-    console.log('🔄 loadTasks() called for project:', this.projectId);
+    
     this.isLoadingTasks = true;
     this.error = null;
     
     this.taskService.getTasksByProject(this.projectId).subscribe({
       next: (data: any) => {
-        console.log('📥 Raw tasks data received:', data);
-        console.log('📊 Data type:', typeof data);
-        console.log('📊 Is Array:', Array.isArray(data));
         
         const activeTasks = Array.isArray(data) ? data.filter((task: TaskDTO) => !task.archived) : [];
-        console.log('✅ Active tasks after filter:', activeTasks);
-        console.log('✅ Active tasks count:', activeTasks.length);
-        
         this.tasks = activeTasks;
         this.dataSource.data = activeTasks;
         
         // Extract project name from first task if available
         if (activeTasks.length > 0 && activeTasks[0].project) {
           this.currentProjectName = activeTasks[0].project.projectName;
-          console.log('✅ Project name extracted:', this.currentProjectName);
         } else {
           // Fallback: load project name separately
           this.loadProjectName();
@@ -316,16 +309,10 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
         // Paginator nach Datenaktualisierung neu setzen
         if (this.paginator) {
           this.dataSource.paginator = this.paginator;
-          console.log('✅ Paginator re-connected');
         }
         
         this.isLoadingTasks = false;
         this.cdr.markForCheck();
-        
-        console.log('✅ Final state - DataSource.data.length:', this.dataSource.data.length);
-        console.log('✅ Final state - isLoadingTasks:', this.isLoadingTasks);
-        console.log('✅ Final state - error:', this.error);
-        console.log('✅ Final state - Should show table?', !this.isLoadingTasks && this.dataSource.data.length > 0);
       },
       error: (error) => {
         console.error('❌ Error loading tasks:', error);
@@ -333,15 +320,13 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
         console.error('Error message:', error.message);
         
         if(error.status === 401 || error.status === 403){
-          console.log('🔄 Auth error, redirecting to login');
+          
           alert('Session expired. Please login again.');
           localStorage.removeItem('token');
           this.router.navigateByUrl('/login');
         } else if (error.status === 0) {
-          console.log('❌ No internet connection or CORS issue');
           this.error = 'Network error. Please check your connection and try again.';
         } else {
-          console.log('❌ API Error:', error);
           this.error = `Failed to load tasks (Error: ${error.status || 'Unknown'})`;
         }
         this.isLoadingTasks = false;
@@ -350,19 +335,26 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  // Method to check if a task is currently being tracked
   isRunning(taskID: number){
     return this.runningTasks[taskID] === true;
   }
 
+  // Separate method to start time tracking for a task
   start(taskID: number): void{
-    console.log('Starting time tracking:', taskID);
+    const currentUserID = this.authService.getCurrentUserID();
+    const assignedTo = this.tasks.find(t => t.taskID === taskID)?.assignedTo;
+    // Check if the current user is assigned to the task before allowing time tracking
+    if (assignedTo !== currentUserID) {
+      alert('You can only track time for tasks assigned to you!');
+      return;
+    }
+
     this.timeTracking.startTimeTracking(taskID).subscribe({
       next: (response)=>{
-        console.log('time tracking started:', response);
         this.runningTasks[taskID] = true;
         this.cdr.detectChanges();
         alert('time tracking started');
-        
       },
       error: (error) => {
         console.error('❌ Error starting time tracking:', error);
@@ -378,12 +370,18 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
 
   }
 
+  // Separate method to stop time tracking for a task
   stop(taskID: number): void{
-    console.log('stopping time tracking for task:', taskID);
-    
+    // Check if the current user is assigned to the task before allowing time tracking
+    const currentUserID = this.authService.getCurrentUserID();
+    const assignedTo = this.tasks.find(t => t.taskID === taskID)?.assignedTo;
+
+    if (assignedTo !== currentUserID) {
+      alert('You can only track time for tasks assigned to you!');
+      return;
+    }
     this.timeTracking.stopTimeTracking(taskID).subscribe({
       next: (response)=>{
-        console.log('Time tracking stopped:', response);
         this.runningTasks[taskID] = false;
         this.loadTaskTimes();
         this.cdr.detectChanges();
@@ -399,37 +397,61 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
           alert('Failed to stop time tracking');
         }
       }
-    });
-    
+    }); 
   }
 
-
-  loadTaskTimes(){
-    console.log('⏱️ Loading task times for project:', this.projectId);
-    this.timeTracking.getTimeTrackingByProject(this.projectId).subscribe({
-      next: (data)=>{
-        console.log('📊 Task times received:', data);
-        data.forEach( item =>{
-        this.taskTimes[item.taskID] = item.totalDuration * 60;
-        console.log('✅ Task times loaded:', this.taskTimes);
-        this.cdr.detectChanges();
-      })
+// Separate method to load time spent on each task
+loadTaskTimes(){
+  this.timeTracking.getTimeTrackingByProject(this.projectId).subscribe({
+    next: (data: any) => {
+      // Validate that we received an array
+      if (Array.isArray(data)) {
+        // Create a new object to hold the updated task times
+        const newTaskTimes: { [taskID: number]: number } = {};
+        // Iterate through the received data and populate the new task times object
+        data.forEach(item => {
+          newTaskTimes[item.taskID] = item.totalDuration * 60;
+        });
+        // Update the taskTimes object with the new values
+        this.taskTimes = newTaskTimes; 
+      } else {
+        console.warn('⚠️ Expected array but got:', typeof data);
+      }
+      this.cdr.detectChanges();
     },
-   error: (error) => {
-     console.error('❌ Error loading task times:', error);
-     // Ignore error 404 in case there is no time tracking
-     if (error.status !== 404) {
-       console.warn('⚠️ Failed to load task times, but continuing...');
-     }
-   }
+    error: (error) => {
+      console.error('❌ Error loading task times:', error);
+      if (error.status !== 404) {
+        console.warn('⚠️ Failed to load task times, but continuing...');
+      }
+      this.cdr.detectChanges();
+    }
+  });
+}
+  // Separate method to load total time for the project
+  loadTotalTimePerProject(){
+  this.timeTracking.getTotalTime(this.projectId).subscribe({
+    next: (data) => {
+      console.log('📊 Total time data received:', data);
+      this.totalProjectTime.set(data);
+      console.log('⏱️ Total project time set to:', this.totalProjectTime);
+      
+      // ✅ Force Angular Change Detection
+      this.cdr.markForCheck(); 
+      this.cdr.detectChanges();
+    },
+    error: (error) => {
+      console.error('❌ Error loading total time:', error);
+      this.cdr.detectChanges();
+    }
   });
   }
 
+  // Helper method to format time in seconds to "Xh Ym" format
   formatTime(seconds: number): string {
     if(!seconds || seconds === 0) {
       return '0m';
     }
-
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
 

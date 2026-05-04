@@ -30,8 +30,10 @@
 </div>
 
 <h2 *ngIf="currentProjectName" style="margin-left: 15px;">Tasks for: {{currentProjectName}}</h2>
-
-<!-- Projects Table -->
+<h3 style="margin-left: 15px;">
+  Total Time: {{ totalProjectTime() || '0m' }} minutes
+</h3>
+<!-- Tasks Table -->
 <div class="table-container" *ngIf="!isLoadingTasks && dataSource.data.length > 0">
     <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
       

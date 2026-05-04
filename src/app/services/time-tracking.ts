@@ -20,8 +20,10 @@ export class TimeTracking {
 
   getTimeTrackingByProject(projectID: number){
     return this.http.get<any[]>(`${this.apiUrl}/timetrackings/project/${projectID}`)
+  }
 
-    
+  getTotalTime(projectID: number){
+    return this.http.get<number>(`${this.apiUrl}/timetrackings/project/${projectID}/total`)
   }
 
 }
