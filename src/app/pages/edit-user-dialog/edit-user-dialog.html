@@ -42,11 +42,12 @@
 </mat-dialog-content>
 
 <mat-dialog-actions>
-  <button mat-button color="warn" (click)="onCancel()">Cancel</button>
+  <button mat-button color="warn" style="background-color: rgb(228, 21, 21);" (click)="onCancel()">Cancel</button>
   <button 
     mat-raised-button 
     color="primary" 
     (click)="onSave()"
+    style="background-color: rgb(21, 228, 31);"
     [disabled]="!isFormValid()">
     Save Changes
   </button>

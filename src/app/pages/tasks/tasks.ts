@@ -62,7 +62,6 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
-    console.log('🔗 Paginator connected:', this.paginator);
     
     // Force reconnect paginator after view init
     setTimeout(() => {
@@ -138,10 +137,6 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
             this.cdr.markForCheck();
           },
           error: (error: any) => {
-            console.error('❌ Error creating task:', error);
-            console.error('Error status:', error.status);
-            console.error('Error response:', error.error);
-  
             if (error.status === 400) {
               alert(`Failed to create task: ${error.error?.message || error.error || 'Bad Request'}`);
             } else if (error.status === 409) {
@@ -199,10 +194,6 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
             this.loadTasks()
           },
           error: (error) => {
-            console.error('❌ Error updating task:', error);
-            console.error('Error status:', error.status);
-            console.error('Error details:', error.error);
-          
             if (error.status === 403) {
               alert('You do not have permission to edit this task');
             } else if(error.status === 409){
@@ -234,7 +225,6 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
         this.loadTasks();
       },
       error: (error)=>{
-        console.error('Error deleting task:', error);
         if(error.status === 403){
           alert('You do not have permission to perform this action')
         }else {
@@ -259,12 +249,10 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
 
     this.taskService.archiveTask(taskID).subscribe({
       next: (response: any)=>{
-        console.log('✅ Task archived successfully:', response);
         alert('Task archived successfully');
         this.loadTasks();
       },
       error: (error)=> {
-        console.error('Error archiving task:', error);
         if(error.status === 403){
           alert('You do not have permission to perform this action')
         }else{
@@ -307,8 +295,6 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
         });
       },
       error: (error) => {
-        console.error('❌ Error loading tasks:', error);
-        
         if(error.status === 401 || error.status === 403){
           alert('Session expired. Please login again.');
           localStorage.removeItem('token');
@@ -346,7 +332,6 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
         alert('time tracking started');
       },
       error: (error) => {
-        console.error('❌ Error starting time tracking:', error);
         if (error.status === 400) {
           alert('You already have an active time tracking!');
         } else if (error.status === 403) {
@@ -375,7 +360,6 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
         alert('Time tracking stopped');
       },
       error: (error) => {
-        console.error('❌ Error stopping time tracking:', error);
         if (error.status === 404) {
           alert('No active time tracking found for this task!');
         } else if (error.status === 403) {
@@ -391,8 +375,6 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
 loadTaskTimes(){
   this.timeTracking.getTimeTrackingByProject(this.projectId).subscribe({
     next: (data: any) => {
-      console.log('📊 Task times data received:', data);
-      
       if (Array.isArray(data)) {
         const newTaskTimes: { [taskID: number]: number } = {};
         
@@ -401,18 +383,11 @@ loadTaskTimes(){
         });
         
         this.taskTimes = newTaskTimes;
-        console.log('✅ Task times updated:', this.taskTimes);
-      } else {
-        console.warn('⚠️ Expected array but got:', typeof data);
       }
       
       this.cdr.detectChanges();
     },
     error: (error) => {
-      console.error('❌ Error loading task times:', error);
-      if (error.status !== 404) {
-        console.warn('⚠️ Failed to load task times, but continuing...');
-      }
       this.cdr.detectChanges();
     }
   });
@@ -421,16 +396,10 @@ loadTaskTimes(){
   loadTotalTimePerProject(){
     this.timeTracking.getTotalTime(this.projectId).subscribe({
       next: (data) => {
-        console.log('📊 Total time data received:', data);
-        
-        // ✅ Direkt als Zahl zuweisen
         this.totalProjectTime = typeof data === 'number' ? data : 0;
-        
-        console.log('⏱️ Total project time set to:', this.totalProjectTime);
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('❌ Error loading total time:', error);
         this.totalProjectTime = 0;
         this.cdr.detectChanges();
       }

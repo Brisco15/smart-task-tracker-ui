@@ -56,10 +56,6 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
       this.cdr.detectChanges();
     },
     error: (error) => {
-      console.error('Error loading users:', error);
-      console.error('Error status:', error.status);
-      console.error('Error message:', error.message);
-      
       if(error.status === 401 || error.status === 403){
         alert('Access denied. Token may be invalid or expired.');
         localStorage.removeItem('token');
@@ -107,7 +103,6 @@ deleteUser(userID: number){
         this.loadUsers();
       },
       error: (error)=>{
-        console.error('Error deleting user', error);
         if(error.status === 403){
           alert('You do not have permission to perform this action')
         }else{
@@ -132,7 +127,6 @@ deleteUser(userID: number){
         this.loadUsers(); 
       },
       error: (error) => {
-        console.error('Error archiving user', error);
         if (error.status === 403) {
           alert('You do not have permission to perform this action');
         } else {
@@ -171,8 +165,7 @@ deleteUser(userID: number){
             alert('User updated successfully');
             this.loadUsers();
           },
-          error: (error) =>{
-            console.error('Error updating user:', error);
+          error: (error) => {
             alert('Failed to update user infos')
           }
         })

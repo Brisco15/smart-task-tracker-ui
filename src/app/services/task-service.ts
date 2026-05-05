@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -16,37 +15,35 @@ export class TaskService {
       'Pragma': 'no-cache',
       'Expires': '0'
     });
-    return this.http.get(`${this.apiUrl}/tasks`, {headers})  // ✅ Geändert von /taskItems zu /tasks
+    return this.http.get(`${this.apiUrl}/tasks`, {headers})
   }
 
   getTask(taskID: number){
-    return this.http.get(`${this.apiUrl}/tasks/${taskID}`)  // ✅ Geändert
+    return this.http.get(`${this.apiUrl}/tasks/${taskID}`)
   }
 
   getTasksByProject(projectId: number) {
-    return this.http.get(`${this.apiUrl}/tasks/project/${projectId}`);  // ✅ Bereits korrekt
+    return this.http.get(`${this.apiUrl}/tasks/project/${projectId}`);
   }
 
   deleteTask(taskID: number){
-    return this.http.delete(`${this.apiUrl}/tasks/${taskID}`)  // ✅ Geändert
+    return this.http.delete(`${this.apiUrl}/tasks/${taskID}`)
   }
 
   updateTask(taskID: number, taskData: any){
-    return this.http.put(`${this.apiUrl}/tasks/${taskID}`, taskData)  // ✅ Geändert
+    return this.http.put(`${this.apiUrl}/tasks/${taskID}`, taskData)
   }
 
   updateTaskByProject(projectId: number,taskID: number, taskData: any){
-    return this.http.put(`${this.apiUrl}/tasks/project/${projectId}/${taskID}`, taskData)  // ✅ Geändert
+    return this.http.put(`${this.apiUrl}/tasks/project/${projectId}/${taskID}`, taskData)
   }
 
   archiveTask(taskID: number){
-    return this.http.patch(`${this.apiUrl}/tasks/${taskID}/archive`,{})  // ✅ Geändert
+    return this.http.patch(`${this.apiUrl}/tasks/${taskID}/archive`,{})
   }
 
   postTask(newTask: any){
-    return this.http.post(`${this.apiUrl}/tasks`, newTask)  // ✅ Geändert von /taskItems zu /tasks
-    .pipe(tap(()=>console.log('A new task was created'))
-    )
+    return this.http.post(`${this.apiUrl}/tasks`, newTask)
   }
 }
 

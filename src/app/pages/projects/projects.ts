@@ -46,7 +46,6 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
 
   private validateAndLoadProjects(): void {
     const token = localStorage.getItem('token');
-    console.log('🔍 Token check:', !!token);
     
     if (!token) {
       this.router.navigateByUrl('/login');
@@ -63,7 +62,6 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
         return;
       }
     } catch (e) {
-      console.log('❌ Invalid token format, redirecting to login');
       localStorage.removeItem('token');
       this.router.navigateByUrl('/login');
       return;
@@ -74,29 +72,22 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void{
     // Connect Paginator
-    this.dataSource.paginator = this.paginator;
-    console.log('🔗 Paginator connected:', this.paginator);
-    
+    this.dataSource.paginator = this.paginator;  
     // Force reconnect paginator after view init
     setTimeout(() => {
       if (this.paginator && this.dataSource.data.length > 0) {
         this.dataSource.paginator = this.paginator;
-        console.log('🔗 Paginator re-connected after timeout');
       }
     }, 0);
   }
   
   ngOnDestroy(): void {
-    console.log('🔄 Component destroyed');
   }
   
   loadProjects(){
-    console.log('🔄 loadProjects() called');
+    
     this.isLoadingProjects = true;
     this.error = null;  // Always reset error state
-    
-    console.log('🔄 Starting to load projects...');
-    
     this.projectService.getAllProjects().subscribe({
       next: (data: any) => {
         const activeProjects = data.filter((project: ProjectDTO) => !project.archived);
@@ -112,12 +103,7 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
         this.cdr.markForCheck();
       },
       error: (error) => {
-        console.error('❌ Error loading projects:', error);
-        console.error('Error status:', error.status);
-        console.error('Error message:', error.message);
-        
         if(error.status === 401 || error.status === 403){
-          console.log('🔄 Auth error, redirecting to login');
           alert('Session expired. Please login again.');
           localStorage.removeItem('token');
           this.router.navigateByUrl('/login');
@@ -142,7 +128,6 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
 
   createProject(){
     const userRole = this.authService.getUserRole();
-    console.log('current Role:', userRole);
     
     if(userRole !== 'Manager'){
       alert('You do not have permission to perform this action');
@@ -177,20 +162,13 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
           createdBy: currentUserID
         };
         
-        console.log('📤 Sending project to backend:', newProject);
 
         this.projectService.postProject(newProject).subscribe({
-          next: (response: any) => {
-            console.log('✅ Project created successfully:', response);
+          next: () => {
             alert('Project created successfully!');
-            
             this.loadProjects();
           },
           error: (error: any) => {
-            console.error('❌ Error creating project:', error);
-            console.error('Error status:', error.status);
-            console.error('Error response:', error.error);
-  
             if (error.status === 400) {
               alert(`Failed to create project: ${error.error?.message || error.error || 'Bad Request'}`);
             } else if (error.status === 409) {
@@ -226,8 +204,6 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(result => {
       if(result){
-        console.log('Dialog result:', result);
-        
         const formatDateOnly = (date: Date | string | null): string | null => {
           if (!date) return null;
           if (typeof date === 'string') return date;
@@ -240,20 +216,12 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
           startDate: formatDateOnly(result.startDate),
           endDate: formatDateOnly(result.endDate)
         };
-
-        console.log('📤 Sending update to backend:', updatedProject);
-
         this.projectService.updateProject(projectID, updatedProject).subscribe({
           next: () => {
-            console.log('✅ Project updated successfully');
             alert('Project updated successfully');
             this.loadProjects();
           },
           error: (error) => {
-            console.error('❌ Error updating project:', error);
-            console.error('Error status:', error.status);
-            console.error('Error details:', error.error);
-          
             if (error.status === 403) {
               alert('You do not have permission to edit this project');
             } else if(error.status === 409){
@@ -275,11 +243,9 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
     this.projectService.deleteProject(projectID).subscribe({
       next: () => {
         alert('Project deleted successfully');
-        
         this.loadProjects();
       },
       error: (error) => {
-        console.error('Error deleting project:', error);
         if(error.status === 403){
           alert('You do not have permission to perform this action');
         } else {
@@ -298,18 +264,12 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if(!confirm('Are you sure you want to archive this project?')) return;
-    
-    console.log('Archiving project:', projectID);
-
     this.projectService.archiveProject(projectID).subscribe({
-      next: (response: any) => {
-        console.log('✅ Project archived successfully:', response);
+      next: () => {
         alert('Project archived successfully');
-        
         this.loadProjects();
       },
       error: (error) => {
-        console.error('Error archiving project:', error);
         if (error.status === 403) {
           alert('You do not have permission to perform this action');
         } else {

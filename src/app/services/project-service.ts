@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { ProjectDTO } from '../interfaces/ProjectDTO';
-import { tap } from 'rxjs/operators';
+
 
 @Injectable({
   providedIn: 'root',
@@ -38,9 +37,6 @@ export class ProjectService {
 
   postProject(newProject: any){
      return this.http.post(`${this.apiUrl}/projects`, newProject)
-     .pipe(tap(() => console.log('A new project was created'))
-    )
   }
-
 
 }

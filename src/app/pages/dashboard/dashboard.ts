@@ -51,7 +51,6 @@ export class Dashboard implements OnInit, OnDestroy {
   private ngZone = inject(NgZone);
 
   ngOnInit() {
-    console.log('🚀 Dashboard ngOnInit');
     this.loadData();
   }
 
@@ -62,7 +61,6 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   loadData() {
-    console.log('📥 Starting data load...');
     this.isLoading = true;
     this.errorMessage = null;
     this.cdr.detectChanges();
@@ -75,8 +73,6 @@ export class Dashboard implements OnInit, OnDestroy {
             this.projects = Array.isArray(response) ? response.filter((p: any) => !p.archived) : [];
             this.stats.totalProjects = this.projects.length;
             
-            console.log('✅ Projects loaded:', this.projects.length);
-            
             if (this.projects.length > 0) {
               this.loadTasksAndTime();
             } else {
@@ -87,7 +83,6 @@ export class Dashboard implements OnInit, OnDestroy {
         },
         error: (error) => {
           this.ngZone.run(() => {
-            console.error('❌ Error loading projects:', error);
             this.errorMessage = 'Failed to load dashboard data.';
             this.isLoading = false;
             this.cdr.detectChanges();
@@ -111,23 +106,16 @@ export class Dashboard implements OnInit, OnDestroy {
             const timesArray = Array.isArray(times) ? times : [times];
             this.stats.totalTime = timesArray.reduce((sum: number, time: any) => sum + (time || 0), 0);
             
-            console.log('✅ Tasks loaded:', this.tasks.length);
-            console.log('✅ Stats:', this.stats);
-            console.log('🔄 Setting isLoading to false');
-            
             this.isLoading = false;
             this.cdr.detectChanges();
             
-            // Wait for DOM to update, then render charts
             setTimeout(() => {
-              console.log('🎨 Rendering charts...');
               this.renderCharts();
             }, 100);
           });
         },
         error: (error) => {
           this.ngZone.run(() => {
-            console.error('❌ Error loading tasks:', error);
             this.errorMessage = 'Failed to load tasks.';
             this.isLoading = false;
             this.cdr.detectChanges();
@@ -144,20 +132,11 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   private renderCharts() {
-    console.log('🔍 Canvas elements:', {
-      status: !!this.statusCanvas,
-      priority: !!this.priorityCanvas,
-      project: !!this.projectCanvas,
-      time: !!this.timeCanvas
-    });
-
     if (!this.statusCanvas || !this.priorityCanvas || !this.projectCanvas || !this.timeCanvas) {
-      console.error('❌ Canvas elements not ready');
       return;
     }
 
     if (this.tasks.length === 0) {
-      console.warn('⚠️ No tasks to render');
       return;
     }
 
@@ -168,8 +147,6 @@ export class Dashboard implements OnInit, OnDestroy {
     this.renderPriorityChart();
     this.renderProjectChart();
     this.renderTimeChart();
-
-    console.log('✅ Charts rendered:', this.charts.length);
   }
 
   private renderStatusChart() {
@@ -180,8 +157,6 @@ export class Dashboard implements OnInit, OnDestroy {
       const status = task.status?.statusName || 'Unknown';
       statusCounts[status] = (statusCounts[status] || 0) + 1;
     });
-
-    console.log('📊 Status chart data:', statusCounts);
 
     const chart = new Chart(this.statusCanvas.nativeElement, {
       type: 'doughnut',
@@ -212,8 +187,6 @@ export class Dashboard implements OnInit, OnDestroy {
       const priority = task.priority?.priorityName || 'Unknown';
       priorityCounts[priority] = (priorityCounts[priority] || 0) + 1;
     });
-
-    console.log('📊 Priority chart data:', priorityCounts);
 
     const chart = new Chart(this.priorityCanvas.nativeElement, {
       type: 'bar',
@@ -247,8 +220,6 @@ export class Dashboard implements OnInit, OnDestroy {
         completion: projectTasks.length > 0 ? Math.round((completed / projectTasks.length) * 100) : 0
       };
     });
-
-    console.log('📊 Project chart data:', projectData);
 
     const chart = new Chart(this.projectCanvas.nativeElement, {
       type: 'bar',
@@ -285,8 +256,6 @@ export class Dashboard implements OnInit, OnDestroy {
       taskCount: this.tasks.filter(t => t.projectID === project.projectID).length
     }));
 
-    console.log('📊 Time chart data:', timeData);
-
     const chart = new Chart(this.timeCanvas.nativeElement, {
       type: 'bar',
       data: {
@@ -300,26 +269,22 @@ export class Dashboard implements OnInit, OnDestroy {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        indexAxis: 'y',
         plugins: { legend: { display: false } },
-        scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
       }
     });
 
     this.charts.push(chart);
   }
 
+  refresh() {
+    this.loadData();
+  }
+
   formatTime(seconds: number): string {
     if (!seconds) return '0m';
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
-    return h > 0 ? `${h}h ${m}m` : `${m}m`;
-  }
-
-  refresh() {
-    console.log('🔄 Refreshing dashboard...');
-    this.charts.forEach(chart => chart.destroy());
-    this.charts = [];
-    this.loadData();
+    return `${h > 0 ? h + 'h ' : ''}${m}m`;
   }
 }
