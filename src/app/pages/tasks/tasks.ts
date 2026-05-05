@@ -14,10 +14,8 @@ import { TaskService } from '../../services/task-service';
 import { CreateTaskDialog } from '../create-task-dialog/create-task-dialog';
 import { EditTaskDialog } from '../edit-task-dialog/edit-task-dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatCard, MatCardModule } from '@angular/material/card';
+import { MatCardModule } from '@angular/material/card';
 import { TimeTracking } from '../../services/time-tracking';
-import { signal } from '@angular/core';
-
 
 
 @Component({
@@ -34,7 +32,7 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
   http = inject(HttpClient);
   router = inject(Router);
   isLoadingTasks = false;
-  showDebugPanel = false;
+  
   projectId!: number;
   currentProjectName: string = '';
   taskTimes: { [taskID: number]: number} = {};
@@ -78,16 +76,7 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
     
   }
 
-  // Force refresh method
-  forceRefresh(): void {
-    
-    this.error = null;
-    this.tasks = [];
-    this.dataSource.data = [];
-    this.currentProjectName = '';
-    this.loadTasks();
-  }
-
+ 
   // Fallback method to load project name separately
   private loadProjectName(): void {
     // Call the service to get project details
@@ -459,21 +448,6 @@ loadTaskTimes(){
     return `${h > 0 ? h + 'h ' : ''}${m}m`;
   }
   
-  // Helper method for debugging
-  getDebugInfo(): any {
-    const token = localStorage.getItem('token');
-    return {
-      hasToken: !!token,
-      projectId: this.projectId,
-      currentProjectName: this.currentProjectName,
-      tasksCount: this.tasks.length,
-      dataSourceCount: this.dataSource.data.length,
-      isLoading: this.isLoadingTasks,
-      error: this.error,
-      showTable: !this.isLoadingTasks && this.dataSource.data.length > 0,
-      hasPaginator: !!this.paginator,
-      totalProjectTime: this.totalProjectTime
-    };
-  }
+  
 }
 

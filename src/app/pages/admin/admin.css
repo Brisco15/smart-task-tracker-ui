@@ -1,9 +1,11 @@
 
-h3 {
-  color: #555;
-  margin-top: 30px;
+h1 {
+  color: #333;
+  margin: 15px;
+  font-size: 32px;
+  font-weight: 500;
   margin-bottom: 15px;
-  text-align: center;
+  
 }
 
 .users-table {
