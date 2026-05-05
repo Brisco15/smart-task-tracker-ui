@@ -90,8 +90,6 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
     console.log('🔄 Component destroyed');
   }
   
-
-
   loadProjects(){
     console.log('🔄 loadProjects() called');
     this.isLoadingProjects = true;
@@ -101,30 +99,17 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
     
     this.projectService.getAllProjects().subscribe({
       next: (data: any) => {
-        console.log('📥 Raw data received:', data);
-        console.log('📊 Data type:', typeof data);
-        console.log('📊 Is Array:', Array.isArray(data));
-        
         const activeProjects = data.filter((project: ProjectDTO) => !project.archived);
-        console.log('✅ Active projects after filter:', activeProjects);
-        console.log('✅ Active projects count:', activeProjects.length);
-        
         this.projects = activeProjects;
         this.dataSource.data = activeProjects;
         
         // Paginator nach Datenaktualisierung neu setzen
         if (this.paginator) {
           this.dataSource.paginator = this.paginator;
-          console.log('✅ Paginator re-connected');
         }
         
         this.isLoadingProjects = false;
-        this.cdr.markForCheck();  // Force change detection
-        
-        console.log('✅ Final state - DataSource.data.length:', this.dataSource.data.length);
-        console.log('✅ Final state - isLoadingProjects:', this.isLoadingProjects);
-        console.log('✅ Final state - error:', this.error);
-        console.log('✅ Final state - Should show table?', !this.isLoadingProjects && this.dataSource.data.length > 0);
+        this.cdr.markForCheck();
       },
       error: (error) => {
         console.error('❌ Error loading projects:', error);
@@ -137,10 +122,8 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
           localStorage.removeItem('token');
           this.router.navigateByUrl('/login');
         } else if (error.status === 0) {
-          console.log('❌ No internet connection or CORS issue');
           this.error = 'Network error. Please check your connection and try again.';
         } else {
-          console.log('❌ API Error:', error);
           this.error = `Failed to load projects (Error: ${error.status || 'Unknown'})`;
         }
         this.isLoadingProjects = false;

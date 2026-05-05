@@ -34,47 +34,45 @@ export class Auth {
       })
     }
 
-    getToken(): string | null{
+  getToken(): string | null{
       return localStorage.getItem('token');
-    }
+  }
 
-    isAuthenticated(): boolean {
-      const token = this.getToken();
-      if(!token) return false;
-
-      try{
-        const decoded = jwtDecode<JwtPayload>(token);
-        return decoded.exp * 1000 > Date.now();
-      }catch {
+  isAuthenticated(): boolean {
+    const token = this.getToken();
+    if(!token) return false;
+    try{
+      const decoded = jwtDecode<JwtPayload>(token);
+      return decoded.exp * 1000 > Date.now();
+    }catch {
         return false
-      }
     }
+  }
 
-    getUserRole(): string | null {
-      const token = this.getToken()
-      if(!token) {
-        console.log('No token found');
-        return null;
-      }
-
-      try {
+  getUserRole(): string | null {
+    const token = this.getToken()
+    if(!token) {
+      console.log('No token found');
+       return null;
+    }
+    try {
         const decoded = jwtDecode<any>(token);
         // Try both possible claim names
         const role = decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] 
                   || decoded['role'];
         return role || null;
-      }catch(error) {
+    }catch(error) {
         console.error('Error decoding token:', error);
         return null;
-      }
     }
+  }
 
-    getCurrentUserID(): number | null {
-      const token = this.getToken();
-      if (!token) {
-        console.log('No token found');
-        return null;
-      }
+getCurrentUserID(): number | null {
+  const token = this.getToken();
+  if (!token) {
+    console.log('No token found');
+    return null;
+  }
 
   try {
     const decoded = jwtDecode<any>(token);
@@ -82,14 +80,14 @@ export class Auth {
                 || decoded['nameid']
                 || decoded['sub'];
     
-                return userId ? parseInt(userId, 10) : null;
+    return userId ? parseInt(userId, 10) : null;
   } catch (error) {
     console.error('Error decoding token:', error);
     return null;
   }
 }
 
-    logout(): void{
-      localStorage.removeItem('token')
-    }
+  logout(): void{
+    localStorage.removeItem('token')
+  }
 }

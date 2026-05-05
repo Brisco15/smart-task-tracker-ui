@@ -1,9 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Auth } from '../../services/auth';
-import { authGuard } from '../../guards/auth-guard';
-import { roleGuardGuard } from '../../guards/role-guard-guard';
-import { Admin } from '../../services/admin';
 import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -12,8 +9,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
-
-
 
 @Component({
   selector: 'app-layout',
@@ -29,7 +24,7 @@ export class Layout {
   sidenavOpened = true;
   currentUser: any = null;
 
-  constructor(private authService: Auth, private adminService: Admin){
+  constructor(private authService: Auth){
     this.loadUserInfo();
   }
 
@@ -38,11 +33,7 @@ export class Layout {
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-
-
-        // ✅ Auth Service Methode verwenden
         const userRole = this.authService.getUserRole();
-        console.log('🎫 User Role from Service:', userRole);
         // Extract user info from token claims
         this.currentUser = {
           name: payload.unique_name || payload.sub || 'User',

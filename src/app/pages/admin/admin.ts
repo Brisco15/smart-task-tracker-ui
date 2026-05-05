@@ -11,6 +11,7 @@ import { EditUserDialog } from '../edit-user-dialog/edit-user-dialog';
 import { HttpClient } from '@angular/common/http';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { Auth } from '../../services/auth';
 
 @Component({
   selector: 'app-admin',
@@ -31,37 +32,28 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   
 
   constructor(private adminService: AdminService, private router: Router,
-    private cdr: ChangeDetectorRef, private dialog: MatDialog
+    private cdr: ChangeDetectorRef, private dialog: MatDialog,
+    private authService: Auth
   ) { }
 
   ngOnInit(): void {
     this.loadUsers();
   }
 
-  
-
  loadUsers() {
   this.isLoadingUsers = true;
   this.error = null;
   
-  console.log('📥 Calling getAllUsers()...');
-  
   this.adminService.getAllUsers().subscribe({
-    next: (data: any) => {
-      console.log('✅ Users loaded:', data);
-
+    next: (data: any) => {     
       const activeUsers = data.filter((user: UserDTO) => !user.archived)
       this.users = activeUsers;
       
-      //  DataSource aktualisieren
+      //  DataSource reload
       this.dataSource.data = activeUsers;
-      
       this.isLoadingUsers = false;
-      
-      //  Change Detection manuell auslösen
+      //  Force Change Detection 
       this.cdr.detectChanges();
-      
-      console.log('📊 DataSource updated, count:', this.dataSource.data.length);
     },
     error: (error) => {
       console.error('Error loading users:', error);
@@ -91,19 +83,24 @@ ngAfterViewInit():void{
 }
 
 
- ngOnDestroy(): void {
-    console.log('🔄 Component destroyed');
-  }
+ngOnDestroy(): void {}
  
-   getAnyLoading(): boolean {
-    return this.isLoadingUsers;
-  }
+getAnyLoading(): boolean {
+  return this.isLoadingUsers;
+}
 
-  trackBy = (index: number, item: any): any => {
+trackBy = (index: number, item: any): any => {
     return item.userID || item.id || index;
-  }
+}
 
-  deleteUser(userID: number){
+deleteUser(userID: number){
+    const currentUserID = this.authService.getCurrentUserID();
+    if(currentUserID === userID){
+      alert('You cannot delete yourself');
+      return;
+    }
+    
+   
     if(!confirm('are you sure you want to delete this user?')) return;
     this.adminService.deleteUser(userID).subscribe({
       next:()=>{
@@ -120,16 +117,19 @@ ngAfterViewInit():void{
     })
   }
 
-
   archiveUser(userID: number){
+    const currentUserID = this.authService.getCurrentUserID();
+    if(currentUserID === userID){
+      alert('You cannot archive yourself');
+      return;
+    }
+
     if(!confirm('Are you sure you want to archive this user?')) return;
     
-    console.log('Archiving user:', userID);
-
     this.adminService.archiveUser(userID).subscribe({
       next: (response: any) => {
         alert(response.message ||'User archived successfully');
-        this.loadUsers(); // Refresh the list
+        this.loadUsers(); 
       },
       error: (error) => {
         console.error('Error archiving user', error);
@@ -142,9 +142,12 @@ ngAfterViewInit():void{
     });
   }
 
-
    editUser(userID: number) {
-    // Find the user to edit
+    const currentUserID = this.authService.getCurrentUserID();
+    if(currentUserID === userID){
+      alert('You cannot edit yourself');
+      return;
+    }
     const userToEdit = this.users.find(u => u.userID === userID);
     if(!userToEdit){
       alert('User not found');
@@ -161,8 +164,7 @@ ngAfterViewInit():void{
     // Handle dialog close
     dialogRef.afterClosed().subscribe(result =>{
       if(result){
-        console.log('Dialog result:', result);
-
+        
         //Update user via API
         this.adminService.updateUser(userID, result).subscribe({
           next: () => {
@@ -178,6 +180,4 @@ ngAfterViewInit():void{
       }
     })  
   }
-  
-
 }
