@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, inject} from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
 import { Admin as AdminService } from '../../services/admin';
 import { Router } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
@@ -10,29 +10,25 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 import { EditUserDialog } from '../edit-user-dialog/edit-user-dialog';
 import { HttpClient } from '@angular/common/http';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-admin',
-  imports: [CommonModule, DatePipe, MatTableModule, MatButtonModule, MatCheckboxModule, ScrollingModule, MatDialogModule,],
+  imports: [CommonModule,MatPaginatorModule ,DatePipe, MatTableModule, MatButtonModule, MatCheckboxModule, ScrollingModule, MatDialogModule,],
   templateUrl: './admin.html',
   styleUrl: './admin.css',
 })
-export class AdminComponent implements OnInit{
+export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   users: UserDTO[] = [];
   error: string | null = null;
   displayedColumns: string[] = ['userID', 'userName', 'email', 'role', 'createdAt','actions'];
   dataSource = new MatTableDataSource<UserDTO>([]);
   http = inject(HttpClient);
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
   
   isLoadingUsers = false;
   
-   get anyLoading(): boolean {
-   return this.isLoadingUsers 
- }
-  trackBy = (index: number, item: any): any => {
-    return item.userID || item.id || index;
-  }
 
   constructor(private adminService: AdminService, private router: Router,
     private cdr: ChangeDetectorRef, private dialog: MatDialog
@@ -41,6 +37,8 @@ export class AdminComponent implements OnInit{
   ngOnInit(): void {
     this.loadUsers();
   }
+
+  
 
  loadUsers() {
   this.isLoadingUsers = true;
@@ -83,7 +81,27 @@ export class AdminComponent implements OnInit{
   });
 }
 
+ngAfterViewInit():void{
+  this.dataSource.paginator = this.paginator;
+  setTimeout(()=>{
+    if(this.paginator && this.dataSource.data.length > 0){
+      this.dataSource.paginator = this.paginator;
+    }
+  }, 0)
+}
+
+
+ ngOnDestroy(): void {
+    console.log('🔄 Component destroyed');
+  }
  
+   getAnyLoading(): boolean {
+    return this.isLoadingUsers;
+  }
+
+  trackBy = (index: number, item: any): any => {
+    return item.userID || item.id || index;
+  }
 
   deleteUser(userID: number){
     if(!confirm('are you sure you want to delete this user?')) return;

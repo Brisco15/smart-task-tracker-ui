@@ -29,7 +29,6 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
   http = inject(HttpClient);
   router = inject(Router);
   isLoadingProjects = false;
-  showDebugPanel = false;  // Add debug panel toggle
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
  
@@ -41,7 +40,6 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
   ){}
 
   ngOnInit(): void {
-    console.log('🔄 Component initialized');
     // Validate token before loading
     this.validateAndLoadProjects();
   }
@@ -51,7 +49,6 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
     console.log('🔍 Token check:', !!token);
     
     if (!token) {
-      console.log('❌ No token found, redirecting to login');
       this.router.navigateByUrl('/login');
       return;
     }
@@ -61,7 +58,6 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const isExpired = Date.now() >= payload.exp * 1000;
       if (isExpired) {
-        console.log('❌ Token expired, redirecting to login');
         localStorage.removeItem('token');
         this.router.navigateByUrl('/login');
         return;
@@ -94,14 +90,7 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
     console.log('🔄 Component destroyed');
   }
   
-  // Force refresh method
-  forceRefresh(): void {
-    console.log('🔄 Force refresh triggered');
-    this.error = null;
-    this.projects = [];
-    this.dataSource.data = [];
-    this.validateAndLoadProjects();
-  }
+
 
   loadProjects(){
     console.log('🔄 loadProjects() called');
@@ -350,20 +339,6 @@ export class Projects implements OnInit, AfterViewInit, OnDestroy {
   // Go to Task Method
   goToTasks(projectID: number){
     this.router.navigate(['/projects', projectID, 'tasks']);
-
   }
   
-  // Helper method for debugging
-  getDebugInfo(): any {
-    const token = localStorage.getItem('token');
-    return {
-      hasToken: !!token,
-      projectsCount: this.projects.length,
-      dataSourceCount: this.dataSource.data.length,
-      isLoading: this.isLoadingProjects,
-      error: this.error,
-      showTable: !this.isLoadingProjects && this.dataSource.data.length > 0,
-      hasPaginator: !!this.paginator
-    };
-  }
 }

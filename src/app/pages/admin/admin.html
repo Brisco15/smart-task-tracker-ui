@@ -5,9 +5,10 @@
   Loading users...
 </div>
 
-<!-- Error State -->
-<div *ngIf="error" style="padding: 15px; background: #ffebee; border-radius: 4px; color: #d32f2f;">
-  {{ error }}
+<!-- Error State with Retry -->
+<div *ngIf="error" style="padding: 15px; background-color:#ffebee ; border-radius: 4px; color: red; margin-bottom: 10px;">
+    <p>{{error}}</p>
+    <button mat-button color="primary" (click)="loadUsers()">Retry</button>
 </div>
 
 <!-- Users Table -->
@@ -66,6 +67,12 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
 </div>
+
+<mat-paginator [hidden]="isLoadingUsers || error || dataSource.data.length === 0"
+               [pageSizeOptions]="[5, 10, 20]"
+               showFirstLastButtons
+               aria-label="Select page of users">
+</mat-paginator>
 
 <!-- No Users Message -->
 <div *ngIf="!isLoadingUsers && !error && dataSource.data.length === 0" 
