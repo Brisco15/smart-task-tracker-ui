@@ -1,7 +1,7 @@
 # SmartTaskTracker — Frontend
 
 A role-based project and task management application built with **Angular 21** and **Angular Material**. It connects to a REST API backend and supports time tracking, user administration, and analytics charts.
-
+- **Backend**: `smartTaskTracker.API` - ASP.NET Core Web API with JWT authentication (.NET 10)
 ---
 
 ## Tech Stack
