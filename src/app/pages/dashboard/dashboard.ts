@@ -1,24 +1,17 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
-import { Chart, ChartConfiguration } from 'chart.js/auto';
+import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { TaskService } from '../../services/task-service';
 import { ProjectService } from '../../services/project-service';
 import { TimeTracking } from '../../services/time-tracking';
 import { CommonModule } from '@angular/common';
-import { forkJoin, Subject, of } from 'rxjs';
-import { takeUntil, finalize, catchError, map } from 'rxjs/operators';
+import { forkJoin, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { Chart, registerables } from 'chart.js';
 
-interface DashboardStats {
-  totalTasks: number;
-  completedTasks: number;
-  inProgressTasks: number;
-  totalProjects: number;
-  totalTime: number;
-  activeUsers: number;
-}
+Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard',
@@ -28,11 +21,14 @@ interface DashboardStats {
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit, OnDestroy {
-  // Data properties
+  @ViewChild('statusChart') statusCanvas?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('priorityChart') priorityCanvas?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('projectChart') projectCanvas?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('timeChart') timeCanvas?: ElementRef<HTMLCanvasElement>;
+
   tasks: any[] = [];
   projects: any[] = [];
-  users: any[] = [];
-  stats: DashboardStats = {
+  stats = {
     totalTasks: 0,
     completedTasks: 0,
     inProgressTasks: 0,
@@ -41,217 +37,143 @@ export class Dashboard implements OnInit, OnDestroy {
     activeUsers: 0
   };
 
-  // UI State
+  chartColors = ['#4CAF50', '#2196F3', '#FF9800', '#F44336', '#9C27B0', '#795548', '#607D8B'];
   isLoading = true;
   errorMessage: string | null = null;
-
-  // Charts
-  private charts: { [key: string]: Chart } = {};
+  
+  private charts: Chart[] = [];
   private destroy$ = new Subject<void>();
   
-  // Services
   private taskService = inject(TaskService);
   private projectService = inject(ProjectService);
   private timeTracking = inject(TimeTracking);
   private cdr = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
 
   ngOnInit() {
-    this.loadDashboardData();
+    console.log('🚀 Dashboard ngOnInit');
+    this.loadData();
   }
 
   ngOnDestroy() {
-    // ✅ Cleanup: Destroy all charts
-    Object.values(this.charts).forEach(chart => chart.destroy());
+    this.charts.forEach(chart => chart.destroy());
     this.destroy$.next();
     this.destroy$.complete();
   }
 
-  loadDashboardData() {
+  loadData() {
+    console.log('📥 Starting data load...');
     this.isLoading = true;
     this.errorMessage = null;
+    this.cdr.detectChanges();
 
     this.projectService.getAllProjects()
-      .pipe(
-        takeUntil(this.destroy$),
-        finalize(() => {
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        })
-      )
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: any) => {
-          this.projects = Array.isArray(response) ? response.filter((p: any) => !p.archived) : [];
-          this.stats.totalProjects = this.projects.length;
-          
-          console.log('📊 Projects loaded:', this.projects.length);
-          
-          if (this.projects.length > 0) {
-            this.loadAllTasks();
-          } else {
-            this.isLoading = false;
-          }
-        },
-        error: (error) => {
-          console.error('❌ Error loading projects:', error);
-          this.errorMessage = 'Failed to load dashboard data. Please try again.';
-          this.projects = [];
-        }
-      });
-  }
-
-  loadAllTasks() {
-    if (this.projects.length === 0) return;
-
-    const taskRequests = this.projects.map(project => 
-      this.taskService.getTasksByProject(project.projectID)
-    );
-
-    forkJoin(taskRequests)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (results: any) => {
-          this.tasks = results.flat().filter((task: any) => !task.archived);
-          this.calculateStatistics();
-          
-          console.log('📋 Total tasks loaded:', this.tasks.length);
-          
-          // ✅ Load time tracking data for all tasks
-          this.loadTaskTimesAndRender();
-        },
-        error: (error) => {
-          console.error('❌ Error loading tasks:', error);
-          this.tasks = [];
-          this.errorMessage = 'Failed to load tasks.';
-        }
-      });
-  }
-
-  // ✅ NEW: Load time tracking data for each task
-  loadTaskTimesAndRender() {
-    if (this.tasks.length === 0) {
-      this.calculateTotalTime();
-      return;
-    }
-
-    // Get unique task IDs
-    const taskIds = [...new Set(this.tasks.map(t => t.taskID))];
-    
-    console.log('⏱️ Loading time tracking for', taskIds.length, 'tasks');
-
-    // Load time tracking for each task
-    const timeRequests = taskIds.map(taskId =>
-      this.timeTracking.getTimeTrackingByTask(taskId).pipe(
-        map((time: any) => ({ taskId, time })),
-        catchError(() => of({ taskId, time: 0 }))
-      )
-    );
-
-    forkJoin(timeRequests)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (results: any[]) => {
-          // ✅ Map time data to tasks
-          results.forEach(result => {
-            const task = this.tasks.find(t => t.taskID === result.taskId);
-            if (task) {
-              // Time is in minutes from API, convert to seconds
-              task.timeSpent = result.time * 60;
+          this.ngZone.run(() => {
+            this.projects = Array.isArray(response) ? response.filter((p: any) => !p.archived) : [];
+            this.stats.totalProjects = this.projects.length;
+            
+            console.log('✅ Projects loaded:', this.projects.length);
+            
+            if (this.projects.length > 0) {
+              this.loadTasksAndTime();
+            } else {
+              this.isLoading = false;
+              this.cdr.detectChanges();
             }
           });
-
-          console.log('✅ Time tracking data loaded');
-          console.log('Tasks with time:', this.tasks.filter(t => t.timeSpent > 0).length);
-          
-          // Calculate total time
-          this.calculateTotalTime();
-          
-          // Render charts with actual data
-          setTimeout(() => {
-            this.renderAllCharts();
-          }, 300);
         },
         error: (error) => {
-          console.error('❌ Error loading time tracking:', error);
-          // Continue without time data
-          this.calculateTotalTime();
-          setTimeout(() => {
-            this.renderAllCharts();
-          }, 300);
+          this.ngZone.run(() => {
+            console.error('❌ Error loading projects:', error);
+            this.errorMessage = 'Failed to load dashboard data.';
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          });
         }
       });
   }
 
-  calculateStatistics() {
-    this.stats.totalTasks = this.tasks.length;
-    this.stats.completedTasks = this.tasks.filter(t => 
-      t.status?.statusName?.toLowerCase() === 'completed'
-    ).length;
-    this.stats.inProgressTasks = this.tasks.filter(t => 
-      t.status?.statusName?.toLowerCase() === 'in progress'
-    ).length;
-    
-    const uniqueUsers = new Set(
-      this.tasks
-        .filter(t => t.assignedTo)
-        .map(t => t.assignedTo)
-    );
-    this.stats.activeUsers = uniqueUsers.size;
+  private loadTasksAndTime() {
+    const taskRequests = this.projects.map(p => this.taskService.getTasksByProject(p.projectID));
+    const timeRequests = this.projects.map(p => this.timeTracking.getTotalTime(p.projectID));
+
+    forkJoin({ tasks: forkJoin(taskRequests), times: forkJoin(timeRequests) })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ({ tasks, times }) => {
+          this.ngZone.run(() => {
+            this.tasks = (tasks as any[]).flat().filter((t: any) => !t.archived);
+            this.calculateStats();
+            
+            const timesArray = Array.isArray(times) ? times : [times];
+            this.stats.totalTime = timesArray.reduce((sum: number, time: any) => sum + (time || 0), 0);
+            
+            console.log('✅ Tasks loaded:', this.tasks.length);
+            console.log('✅ Stats:', this.stats);
+            console.log('🔄 Setting isLoading to false');
+            
+            this.isLoading = false;
+            this.cdr.detectChanges();
+            
+            // Wait for DOM to update, then render charts
+            setTimeout(() => {
+              console.log('🎨 Rendering charts...');
+              this.renderCharts();
+            }, 100);
+          });
+        },
+        error: (error) => {
+          this.ngZone.run(() => {
+            console.error('❌ Error loading tasks:', error);
+            this.errorMessage = 'Failed to load tasks.';
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          });
+        }
+      });
   }
 
-  calculateTotalTime() {
-    if (this.projects.length === 0) {
-      this.stats.totalTime = 0;
+  private calculateStats() {
+    this.stats.totalTasks = this.tasks.length;
+    this.stats.completedTasks = this.tasks.filter(t => t.status?.statusName?.toLowerCase() === 'completed').length;
+    this.stats.inProgressTasks = this.tasks.filter(t => t.status?.statusName?.toLowerCase() === 'in progress').length;
+    this.stats.activeUsers = new Set(this.tasks.filter(t => t.assignedTo).map(t => t.assignedTo)).size;
+  }
+
+  private renderCharts() {
+    console.log('🔍 Canvas elements:', {
+      status: !!this.statusCanvas,
+      priority: !!this.priorityCanvas,
+      project: !!this.projectCanvas,
+      time: !!this.timeCanvas
+    });
+
+    if (!this.statusCanvas || !this.priorityCanvas || !this.projectCanvas || !this.timeCanvas) {
+      console.error('❌ Canvas elements not ready');
       return;
     }
 
-    const timeRequests = this.projects.map(project =>
-      this.timeTracking.getTotalTime(project.projectID).pipe(
-        catchError(() => of(0))
-      )
-    );
-
-    forkJoin(timeRequests)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (times: any) => {
-          const timesArray = Array.isArray(times) ? times : [times];
-          this.stats.totalTime = timesArray.reduce((sum: number, time: number) => sum + (time || 0), 0);
-          console.log('⏱️ Total time:', this.stats.totalTime, 'seconds');
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          console.error('❌ Error calculating total time:', error);
-          this.stats.totalTime = 0;
-        }
-      });
-  }
-
-  renderAllCharts() {
-    console.log('🎨 Rendering charts...');
-    this.loadTaskStatusChart();
-    this.loadTimeChart();
-    this.loadProjectChart();
-    this.loadPriorityChart();
-  }
-
-  formatTime(seconds: number): string {
-    if (!seconds || seconds === 0) return '0m';
-    
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-
-    if (h > 0) return `${h}h ${m}m`;
-    if (m > 0) return `${m}m`;
-    return `${seconds}s`;
-  }
-
-  loadTaskStatusChart() {
-    const canvas = document.getElementById('taskStatusChart') as HTMLCanvasElement;
-    if (!canvas || this.tasks.length === 0) return;
-
-    if (this.charts['taskStatus']) {
-      this.charts['taskStatus'].destroy();
+    if (this.tasks.length === 0) {
+      console.warn('⚠️ No tasks to render');
+      return;
     }
+
+    this.charts.forEach(chart => chart.destroy());
+    this.charts = [];
+
+    this.renderStatusChart();
+    this.renderPriorityChart();
+    this.renderProjectChart();
+    this.renderTimeChart();
+
+    console.log('✅ Charts rendered:', this.charts.length);
+  }
+
+  private renderStatusChart() {
+    if (!this.statusCanvas) return;
 
     const statusCounts: { [key: string]: number } = {};
     this.tasks.forEach(task => {
@@ -259,228 +181,31 @@ export class Dashboard implements OnInit, OnDestroy {
       statusCounts[status] = (statusCounts[status] || 0) + 1;
     });
 
-    const config: ChartConfiguration = {
+    console.log('📊 Status chart data:', statusCounts);
+
+    const chart = new Chart(this.statusCanvas.nativeElement, {
       type: 'doughnut',
       data: {
         labels: Object.keys(statusCounts),
         datasets: [{
           data: Object.values(statusCounts),
-          backgroundColor: [
-            '#4CAF50',
-            '#2196F3',
-            '#FF9800',
-            '#F44336',
-          ],
-          borderWidth: 2,
-          borderColor: '#ffffff'
+          backgroundColor: this.chartColors.slice(0, Object.keys(statusCounts).length)
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: {
-            position: 'bottom',
-            labels: { padding: 15, font: { size: 12 } }
-          },
-          title: {
-            display: true,
-            text: 'Task Status Distribution',
-            font: { size: 16, weight: 'bold' },
-            padding: { top: 10, bottom: 20 }
-          },
-          tooltip: {
-            callbacks: {
-              label: (context) => {
-                const label = context.label || '';
-                const value = context.parsed ?? 0;
-                const total = this.tasks.length;
-                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
-                return `${label}: ${value} (${percentage}%)`;
-              }
-            }
-          }
+          legend: { position: 'bottom' }
         }
       }
-    };
-
-    this.charts['taskStatus'] = new Chart(canvas, config);
-  }
-
-  loadTimeChart() {
-    const canvas = document.getElementById('timeChart') as HTMLCanvasElement;
-    if (!canvas) return;
-
-    if (this.charts['time']) {
-      this.charts['time'].destroy();
-    }
-
-    // ✅ Filter tasks with actual time spent
-    const sortedTasks = [...this.tasks]
-      .filter(t => t.timeSpent && t.timeSpent > 0)
-      .sort((a, b) => (b.timeSpent || 0) - (a.timeSpent || 0))
-      .slice(0, 10);
-
-    console.log('📊 Tasks with time for chart:', sortedTasks.length);
-    sortedTasks.forEach(t => {
-      console.log(`  - ${t.title}: ${this.formatTime(t.timeSpent)}`);
     });
 
-    if (sortedTasks.length === 0) {
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#999';
-        ctx.font = '14px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('No time tracking data available', canvas.width / 2, canvas.height / 2);
-      }
-      return;
-    }
-
-    const config: ChartConfiguration = {
-      type: 'bar',
-      data: {
-        labels: sortedTasks.map(t => t.title.substring(0, 20) + (t.title.length > 20 ? '...' : '')),
-        datasets: [{
-          label: 'Time Spent (minutes)',
-          data: sortedTasks.map(t => Math.round((t.timeSpent || 0) / 60)),
-          backgroundColor: 'rgba(75, 192, 192, 0.6)',
-          borderColor: 'rgba(75, 192, 192, 1)',
-          borderWidth: 2,
-          borderRadius: 5
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              callback: (value) => `${value}m`
-            }
-          }
-        },
-        plugins: {
-          legend: { display: false },
-          title: {
-            display: true,
-            text: 'Time Spent per Task (Top 10)',
-            font: { size: 16, weight: 'bold' },
-            padding: { top: 10, bottom: 20 }
-          },
-          tooltip: {
-            callbacks: {
-              label: (context) => {
-                const minutes = context.parsed?.y ?? 0;
-                const hours = Math.floor(minutes / 60);
-                const remainingMinutes = minutes % 60;
-                return `Time: ${hours}h ${remainingMinutes}m`;
-              }
-            }
-          }
-        }
-      }
-    };
-
-    this.charts['time'] = new Chart(canvas, config);
+    this.charts.push(chart);
   }
 
-  loadProjectChart() {
-    const canvas = document.getElementById('projectChart') as HTMLCanvasElement;
-    if (!canvas || this.projects.length === 0) return;
-
-    if (this.charts['project']) {
-      this.charts['project'].destroy();
-    }
-
-    const projectData = this.projects.map(project => {
-      const projectTasks = this.tasks.filter(t => t.projectID === project.projectID);
-      const completedTasks = projectTasks.filter(t => 
-        t.status?.statusName?.toLowerCase() === 'completed'
-      ).length;
-      const percentage = projectTasks.length > 0 
-        ? Math.round((completedTasks / projectTasks.length) * 100) 
-        : 0;
-      
-      return {
-        name: project.projectName,
-        completion: percentage,
-        taskCount: projectTasks.length
-      };
-    });
-
-    const config: ChartConfiguration = {
-      type: 'bar',
-      data: {
-        labels: projectData.map(p => p.name),
-        datasets: [{
-          label: 'Completion %',
-          data: projectData.map(p => p.completion),
-          backgroundColor: projectData.map(p => 
-            p.completion === 100 ? 'rgba(76, 175, 80, 0.6)' :
-            p.completion >= 50 ? 'rgba(33, 150, 243, 0.6)' :
-            'rgba(255, 152, 0, 0.6)'
-          ),
-          borderColor: projectData.map(p => 
-            p.completion === 100 ? 'rgba(76, 175, 80, 1)' :
-            p.completion >= 50 ? 'rgba(33, 150, 243, 1)' :
-            'rgba(255, 152, 0, 1)'
-          ),
-          borderWidth: 2,
-          borderRadius: 5
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: 100,
-            ticks: { 
-              callback: (value) => {
-                const numValue = typeof value === 'number' ? value : 0;
-                return `${numValue}%`;
-              }
-            }
-          }
-        },
-        plugins: {
-          legend: { display: false },
-          title: {
-            display: true,
-            text: 'Project Completion',
-            font: { size: 16, weight: 'bold' },
-            padding: { top: 10, bottom: 20 }
-          },
-          tooltip: {
-            callbacks: {
-              afterLabel: (context) => {
-                const index = context.dataIndex;
-                if (index >= 0 && index < projectData.length) {
-                  const project = projectData[index];
-                  return `Tasks: ${project.taskCount}`;
-                }
-                return '';
-              }
-            }
-          }
-        }
-      }
-    };
-
-    this.charts['project'] = new Chart(canvas, config);
-  }
-
-  loadPriorityChart() {
-    const canvas = document.getElementById('priorityChart') as HTMLCanvasElement;
-    if (!canvas || this.tasks.length === 0) return;
-
-    if (this.charts['priority']) {
-      this.charts['priority'].destroy();
-    }
+  private renderPriorityChart() {
+    if (!this.priorityCanvas) return;
 
     const priorityCounts: { [key: string]: number } = {};
     this.tasks.forEach(task => {
@@ -488,56 +213,113 @@ export class Dashboard implements OnInit, OnDestroy {
       priorityCounts[priority] = (priorityCounts[priority] || 0) + 1;
     });
 
-    const config: ChartConfiguration = {
+    console.log('📊 Priority chart data:', priorityCounts);
+
+    const chart = new Chart(this.priorityCanvas.nativeElement, {
       type: 'bar',
       data: {
         labels: Object.keys(priorityCounts),
         datasets: [{
-          label: 'Task Count',
+          label: 'Tasks',
           data: Object.values(priorityCounts),
-          backgroundColor: Object.keys(priorityCounts).map(priority => {
-            if (priority.toLowerCase() === 'high') return 'rgba(244, 67, 54, 0.6)';
-            if (priority.toLowerCase() === 'medium') return 'rgba(255, 152, 0, 0.6)';
-            return 'rgba(76, 175, 80, 0.6)';
-          }),
-          borderColor: Object.keys(priorityCounts).map(priority => {
-            if (priority.toLowerCase() === 'high') return 'rgba(244, 67, 54, 1)';
-            if (priority.toLowerCase() === 'medium') return 'rgba(255, 152, 0, 1)';
-            return 'rgba(76, 175, 80, 1)';
-          }),
-          borderWidth: 2,
-          borderRadius: 5
+          backgroundColor: this.chartColors.slice(0, Object.keys(priorityCounts).length)
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+      }
+    });
+
+    this.charts.push(chart);
+  }
+
+  private renderProjectChart() {
+    if (!this.projectCanvas) return;
+
+    const projectData = this.projects.map(project => {
+      const projectTasks = this.tasks.filter(t => t.projectID === project.projectID);
+      const completed = projectTasks.filter(t => t.status?.statusName?.toLowerCase() === 'completed').length;
+      return {
+        name: project.projectName,
+        completion: projectTasks.length > 0 ? Math.round((completed / projectTasks.length) * 100) : 0
+      };
+    });
+
+    console.log('📊 Project chart data:', projectData);
+
+    const chart = new Chart(this.projectCanvas.nativeElement, {
+      type: 'bar',
+      data: {
+        labels: projectData.map(p => p.name),
+        datasets: [{
+          label: 'Completion %',
+          data: projectData.map(p => p.completion),
+          backgroundColor: this.chartColors[0]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: { callback: (value) => value + '%' }
+          }
+        }
+      }
+    });
+
+    this.charts.push(chart);
+  }
+
+  private renderTimeChart() {
+    if (!this.timeCanvas) return;
+
+    const timeData = this.projects.map(project => ({
+      name: project.projectName,
+      taskCount: this.tasks.filter(t => t.projectID === project.projectID).length
+    }));
+
+    console.log('📊 Time chart data:', timeData);
+
+    const chart = new Chart(this.timeCanvas.nativeElement, {
+      type: 'bar',
+      data: {
+        labels: timeData.map(p => p.name),
+        datasets: [{
+          label: 'Tasks',
+          data: timeData.map(p => p.taskCount),
+          backgroundColor: this.chartColors[1]
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         indexAxis: 'y',
-        scales: {
-          x: { beginAtZero: true }
-        },
-        plugins: {
-          legend: { display: false },
-          title: {
-            display: true,
-            text: 'Priority Distribution',
-            font: { size: 16, weight: 'bold' },
-            padding: { top: 10, bottom: 20 }
-          }
-        }
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
       }
-    };
+    });
 
-    this.charts['priority'] = new Chart(canvas, config);
+    this.charts.push(chart);
   }
 
-  // ✅ Refresh functionality
+  formatTime(seconds: number): string {
+    if (!seconds) return '0m';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  }
+
   refresh() {
-    // Destroy existing charts
-    Object.values(this.charts).forEach(chart => chart.destroy());
-    this.charts = {};
-    
-    // Reload data
-    this.loadDashboardData();
+    console.log('🔄 Refreshing dashboard...');
+    this.charts.forEach(chart => chart.destroy());
+    this.charts = [];
+    this.loadData();
   }
 }
