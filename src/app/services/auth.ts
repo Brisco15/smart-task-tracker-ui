@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+﻿import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { JwtPayload } from '../interfaces/jwt-payload';
 import { jwtDecode} from 'jwt-decode'
@@ -7,7 +7,7 @@ import { jwtDecode} from 'jwt-decode'
   providedIn: 'root',
 })
 export class Auth {
-  private apiUrl= 'http://localhost:5260/api/auth';
+  private apiUrl= 'https://smart-task-tracker-api-4114.azurewebsites.net/api/auth';
     constructor(private http: HttpClient){}
 
     register(

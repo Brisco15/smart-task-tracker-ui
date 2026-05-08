@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+﻿import { Component, inject } from '@angular/core';
 import { Auth } from '../../services/auth';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -22,7 +22,7 @@ export class Register {
   http = inject(HttpClient);
   public registerForm: FormGroup;
   public roles: { roleID: number; roleName: string}[]= [];
-  public apiRoleUrl = 'http://localhost:5260/api/Roles';
+  public apiRoleUrl = 'https://smart-task-tracker-api-4114.azurewebsites.net/api/Roles';
 
   constructor(
     private formBuilder: FormBuilder,
@@ -35,7 +35,7 @@ export class Register {
         [
           Validators.required,
           Validators.minLength(3),
-          Validators.pattern('^[a-zA-ZäöüÄÖÜß][a-zA-Z0-9 äöüÄÖÜß .-]*$')
+          Validators.pattern('^[a-zA-ZÃ¤Ã¶Ã¼Ã„Ã–ÃœÃŸ][a-zA-Z0-9 Ã¤Ã¶Ã¼Ã„Ã–ÃœÃŸ .-]*$')
         ]
       ],
       email:

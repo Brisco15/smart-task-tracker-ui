@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+﻿import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
 
@@ -8,7 +8,7 @@ import { Injectable } from '@angular/core';
 
 export class Admin {
 
-  private apiUrl = 'http://localhost:5260/api';
+  private apiUrl = 'https://smart-task-tracker-api-4114.azurewebsites.net/api';
 
   constructor(private http: HttpClient) { }
 

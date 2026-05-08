@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class TimeTracking {
-  private apiUrl = 'http://localhost:5260/api';
+  private apiUrl = 'https://smart-task-tracker-api-4114.azurewebsites.net/api';
 
   constructor(private http: HttpClient){}
 
