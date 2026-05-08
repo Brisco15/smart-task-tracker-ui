@@ -9,13 +9,13 @@
 
 <mat-form-field appearance="fill">
     <mat-label>Description</mat-label>
-    <input type="text" matInput formControlName="description" maxlength="500" required>
+    <input type="text" matInput formControlName="description" maxlength="500" readonly required>
     <mat-hint>maximum 500 characters</mat-hint>
 </mat-form-field>
 
 <mat-form-field appearance="fill">
     <mat-label> Assign to</mat-label>
-    <mat-select formControlName="assignedTo" required>
+    <mat-select formControlName="assignedTo" readonly required>
         <mat-option *ngIf="isLoadingUsers" disabled>
             Loading users...
         </mat-option>

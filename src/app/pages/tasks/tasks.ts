@@ -156,7 +156,7 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // Method to edit a task
-  editTask(taskID: number){
+  editTask(taskID: number) {
     const userRole = this.authService.getUserRole();
     if(userRole === 'Admin'){
       alert('You do not have permission to perform this action');
@@ -167,6 +167,12 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
     const taskToEdit = this.tasks.find(t => t.taskID === taskID);
     if(!taskToEdit){
       alert('Task not found');
+      return;
+    }
+
+    const currentUserID = this.authService.getCurrentUserID();
+    if(userRole !== 'Manager' && taskToEdit.assignedTo !== currentUserID){
+      alert('You cannot edit a task that is not assigned to you');
       return;
     }
 
