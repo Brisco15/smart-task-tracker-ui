@@ -1,7 +1,10 @@
 # SmartTaskTracker — Frontend
 
-A role-based project and task management application built with **Angular 21** and **Angular Material**. It connects to a REST API backend and supports time tracking, user administration, and analytics charts.
-- **Backend**: `smartTaskTracker.API` - ASP.NET Core Web API with JWT authentication (.NET 10)
+A role-based project and task management application built with **Angular 21** and **Angular Material**. It connects to a deployed REST API backend and supports time tracking, user administration, and analytics charts.
+
+- **Backend**: `smartTaskTracker.API` — ASP.NET Core Web API with JWT authentication (.NET 10), deployed on Azure App Service
+- **Frontend**: Angular SPA deployed on **Azure Static Web Apps**
+
 ---
 
 ## Tech Stack
@@ -11,10 +14,11 @@ A role-based project and task management application built with **Angular 21** a
 | Framework | Angular 21.2.5 (standalone components) |
 | UI Library | Angular Material 21.2.5 |
 | Charts | Chart.js 4 |
-| Auth | JWT (jwt-decode) |
-| HTTP | Angular HttpClient + interceptor |
+| Auth | JWT (jwt-decode 4) |
+| HTTP | Angular HttpClient + functional interceptor |
 | Styling | SCSS / CSS |
-| Testing | Vitest |
+| Testing | Vitest 4 |
+| Language | TypeScript ~5.9.2 |
 
 ---
 
@@ -23,7 +27,7 @@ A role-based project and task management application built with **Angular 21** a
 - **Authentication** — JWT-based login and registration with token expiry validation
 - **Role-based access** — Three roles: `Admin`, `Manager`, `Developer`, each with different permissions
 - **Projects** — Create, edit, archive projects
-- **Tasks** — Create, edit, delete, archive tasks per project
+- **Tasks** — Create, edit, delete, archive tasks scoped to a project (`/projects/:projectId/tasks`)
 - **Time Tracking** — Start/stop time tracking per task; view total time per task and project
 - **Dashboard** — Analytics with 4 live charts (task status, priority breakdown, tasks per project, project completion %)
 - **Admin Panel** — User management: view, edit, archive, delete users (Admin only)
@@ -64,7 +68,7 @@ src/app/
 │   ├── layout/                # Shell with sidebar navigation
 │   ├── dashboard/             # Charts and stats overview
 │   ├── projects/              # Project list and management
-│   ├── tasks/                 # Task list with time tracking
+│   ├── tasks/                 # Task list with time tracking (routed via /projects/:projectId/tasks)
 │   ├── admin/                 # User management (Admin only)
 │   └── *-dialog/              # Create/Edit dialogs for tasks, projects, users
 └── services/
@@ -86,7 +90,6 @@ src/app/
 - Node.js 18+
 - npm 11+
 - Angular CLI 21: `npm install -g @angular/cli`
-- Backend API running on `http://localhost:5260`
 
 ### Installation
 
@@ -122,59 +125,35 @@ npm test
 
 ## Backend API
 
-The app expects a REST API at `http://localhost:5260/api`. Key endpoints used:
+The app connects to the deployed API at:
+
+```
+https://smart-task-tracker-api-4114.azurewebsites.net/api
+```
+
+Key endpoints used:
 
 | Endpoint | Description |
 |---|---|
 | `POST /api/auth/login` | Login, returns JWT |
 | `POST /api/auth/register` | Register new user |
 | `GET /api/projects` | Get all projects |
-| `GET /api/projects/{id}/tasks` | Get tasks for a project |
+| `GET /api/tasks/project/{projectId}` | Get tasks for a project |
 | `POST /api/tasks` | Create task |
-| `PUT /api/projects/{id}/tasks/{taskId}` | Update task |
+| `PUT /api/tasks/{taskId}` | Update task |
 | `DELETE /api/tasks/{id}` | Delete task |
+| `PATCH /api/tasks/{id}/archive` | Archive task |
 | `POST /api/timetracking/start/{taskId}` | Start time tracking |
 | `POST /api/timetracking/stop/{taskId}` | Stop time tracking |
-| `GET /api/users` | Get all users (Admin) |
+| `GET /api/users` | Get all users (Admin only) |
+| `PUT /api/users/{id}` | Update user (Admin only) |
+| `PATCH /api/users/{id}/archive` | Archive user (Admin only) |
+| `DELETE /api/users/{id}` | Delete user (Admin only) |
 
-To change the API base URL, update the `apiUrl` property in each service file under `src/app/services/`.
+To change the API base URL, update `apiUrl` in `src/environments/environment.ts` (development) and `src/environments/environment.prod.ts` (production).
 
-```
+---
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Deployment
 
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+The frontend is configured for **Azure Static Web Apps** via `staticwebapp.config.json`. All routes fall back to `index.html` to support Angular's client-side routing.
