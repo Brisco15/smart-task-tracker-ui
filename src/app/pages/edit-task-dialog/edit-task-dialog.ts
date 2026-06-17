@@ -75,12 +75,12 @@ export class EditTaskDialog implements OnInit{
         console.log('Priorities loaded:', data);
         this.priorities = data;
         this.isLoadingPriorities = false;
-        this.cdr.detectChanges();  // ✅ Manuell Change Detection triggern
+        this.cdr.detectChanges();  
       },
       error: (error: any) => {
         console.error('Error loading priorities:', error);
         this.isLoadingPriorities = false;
-        this.cdr.detectChanges();  // ✅ Manuell Change Detection triggern
+        this.cdr.detectChanges();  
       }
     });
   }
@@ -108,16 +108,16 @@ export class EditTaskDialog implements OnInit{
     this.isLoadingUsers = true;
     this.adminService.getAllUsers().subscribe({
       next: (data: any) => {
-        console.log('👥 Users loaded:', data);
+        
         this.users = data.filter((user: any) => 
           !user.archived && !user.deletedAt && user.role.roleID === 3
         );
-        console.log('✅ Active users:', this.users);
+        
         this.isLoadingUsers = false;
         this.cdr.detectChanges(); 
       },
       error: (error) => {
-        console.error('❌ Error loading users:', error);
+        
         alert('Failed to load users. Please try again.');
         this.isLoadingUsers = false;
         this.cdr.detectChanges();  
