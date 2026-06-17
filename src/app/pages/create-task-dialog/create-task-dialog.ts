@@ -68,14 +68,14 @@ export class CreateTaskDialog implements OnInit{
     this.isLoadingUsers = true;
     this.adminService.getAllUsers().subscribe({
       next:(data: any)=>{
-        console.log('👥 Users loaded:', data);
+        
         // Filter just active users, not archived not deleted
         this.users = data.filter((user: any)=>!user.archived && !user.deletedAt && user.role.roleID === 3 );
-        console.log('✅ Active users:', this.users);
+        
         this.isLoadingUsers= false; 
       },
       error: (error)=>{
-        console.error('❌ Error loading users:', error);
+        
         alert('Failed to load users, Please try again.')
         this.isLoadingUsers = false;
       }
