@@ -29,7 +29,7 @@ import { ProjectDTO } from "../../interfaces/ProjectDTO";
   templateUrl: './edit-project-dialog.html',
   styleUrl: './edit-project-dialog.css',
 })
-export class EditProjectDialog implements OnInit{
+export class EditProjectDialog implements {
   form!: FormGroup;
   
   constructor(
@@ -37,13 +37,11 @@ export class EditProjectDialog implements OnInit{
     private dialogRef: MatDialogRef<EditProjectDialog>,
     @Inject(MAT_DIALOG_DATA) public data: {project: ProjectDTO}
   ){
-    // Initialize form early to prevent undefined access
+    
     this.initializeForm();
   }
 
-  ngOnInit(): void {
-    // Form is already initialized in constructor
-  }
+ 
 
   private initializeForm(): void {
     if (!this.data?.project) {
@@ -109,10 +107,10 @@ export class EditProjectDialog implements OnInit{
         modifiedBy: this.data.project.modifiedBy
       };
       
-      console.log('this is the form after submiting:', result)
+     
       this.dialogRef.close(result);
     } catch (error) {
-      console.error('Error saving project:', error);
+      
       alert('Failed to save project. Please check your input and try again.');
     }
   }
